@@ -141,6 +141,7 @@ class CismondiModel(DistributionModel):
         Bc.self = None
         Ad.self = None
         Bd.self = 0.685 - Ad.self*np.exp(-0.6)
+        
 
 
     def fit(self, x, y):
