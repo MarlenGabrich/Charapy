@@ -12,7 +12,7 @@ CharaPy (Characterization-Python) pretende ser un paquete de Python enfocado en 
 
 Es articulado de manera tal que modelos no previstos en el desarrollo del paquete puedan ser añadidos con facilidad. Así como nuevos desarrollos de correlaciones que permitan caracterizar con diferentes Ecuaciones de Estado (EoS) y criterios varios para la ejecución del lumping. 
 
-#Available properties
+# Available properties
 ------------------------------------------------------
 * Masa molar
 * Densidad
