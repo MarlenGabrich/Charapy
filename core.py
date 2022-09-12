@@ -1,22 +1,11 @@
-from tkinter import N
 import numpy as np
 from scipy.optimize import curve_fit
 
+
 class DistributionModel:
     def __init__(self):
-        """ Definite state
-        ----------------------
-        A,B: float
-            fit parameters
-        z: float
-            Molar fraction of component
-        """
 
-        self.A = None
-        self.B = None
-        self.z = None
-
-    def carbon_number(self,z,A,B):
+      def carbon_number(self,z,A,B):
         """Carbon number fraction function 
 
         Estimates the carbon number based on a composition
@@ -39,9 +28,10 @@ class DistributionModel:
         """
         if A is None and B is None:
             A,B = self.A, self.B
-            return A + B * np.log(z)
+        
+        return A + B * np.log(z)
 
-    def molar_fraction(self, carbon_number, A, B): #A.self, B.self
+    def molar_fraction(self, carbon_number, A, B): 
 
         """ Molar fraction function
 
@@ -64,86 +54,107 @@ class DistributionModel:
         """
         if A is None and B is None:
             A,B = self.A, self.B
-            return np.exp((carbon_number -A)/B)
+        
+        return np.exp(A+B*carbon_number)
 
 
 class PedersenModel(DistributionModel):
     def __init__(self):
-        """ Definite state
-        ------------------
-        L,D: float
-            fit parameters
-        """
-        self.L = None
-        self.D = None
-
+      ...
     def density(self, carbon_number, L, D):
+      
+      """ Densities function
 
-        """ Densities function
+      Estimates the densities from C6 onwards 
+      based on increase with carbon number
 
-        Estimates the densities from C6 onwards 
-        based on increase with carbon number
+      Parameters
+      ----------
+      carbon_number: float
+        Carbon number function
+      L, D: float
+        fit parameters
 
-        Parameters
-        ----------
-        carbon_number: float
-          Carbon number function
-        L, D: float
-          fit parameters
+      Returns 
+      -------
+      density: float 
+        Density of a given carbon number fraction
 
-        Returns 
-        -------
-        density: float 
-          Density of a given carbon number fraction
+      """
+      if L is None and D is None:
+        L = self.L
+        D = self.D
 
-        """
-        if L is None and D is None:
-            L = self.L
-            D = self.D
-
-            return L + D*np.log(carbon_number)
-
-    """ ¿Es necesario?
-        def carbon_number(self,z):
-            return self.model.carbon_number(z,self.A,self.B)
-    """
+      return L + D*np.log(carbon_number)
 
     def molecular_weight(self,carbon_number):
-        """ Molecular weight function
+      """ Molecular weight function
 
-        Estimates the molecular weight based on a 
-        carbon number fraction
+      Estimates the molecular weight based on a 
+      carbon number fraction
 
-        Parameters
-        ----------
-        carbon_number: float
-          Carbon number function
+      Parameters
+      ----------
+      carbon_number: float
+        Carbon number function
 
-        Returns 
-        -------
-        molecular_weight: float 
-          Molecular weight of a given carbon number fraction 
+      Returns 
+      -------
+      molecular_weight: float 
+        Molecular weight of a given carbon number fraction 
 
-        """
-        return carbon_number*14-4 
+      """
+      return carbon_number*14-4 
+
 
 class CismondiModel(DistributionModel):
     def __init__(self):
-        """ Definite state
-        ----------------------
-        Ac,Bc,Ad,Bd: float
-            fit parameters
-        C: float
-            heaviest carbon number fraction considered
+      ...  
+    def molecular_weight(self,carbon_number,C):
+    
+      """ Molecular weight function
 
-        """
-        Ac.self = None
-        Bc.self = None
-        Ad.self = None
-        Bd.self = 0.685 - Ad.self*np.exp(-0.6)
-        
+      Estimates the molecular weight based on carbon number
+      and the third fit parameter of Cismondi  "C"
 
+      Parameters
+      ----------
+      carbon_number: float
+        Carbon number function
+      c: float
+        fit parameter (third parameter of cismondi et al.)
 
-    def fit(self, x, y):
-        self.A, self.B = curve_fit(self.molar_fraction, x,y)[0]
-        self.L, self.M = curve_fit(self.density, x, y)[0]
+      Returns 
+      -------
+      molecular_weight: float 
+        Molecular weight of a given carbon number fraction
+      """
+
+      if C is None:
+        C = self.C
+
+      return 84 + C*(carbon_number-6)
+
+    def density(self,carbon_number,Ad):
+      """ Density function
+      Estimates the densities from C6 onwards 
+        based on [...]
+      
+      Parameters 
+      ----------
+      carbon_number: float
+        Carbon number function
+      Ad: float
+        fit parameters of cismondi's propose
+
+      Returns
+      -------
+      density: float
+        Density of a given carbon number fraction
+      """
+
+      if Ad is None:
+        Ad = self.Ad
+
+      Bd = 0.685 - Ad*np.exp(-0.6)
+      return Ad*(np.exp(-carbon_number/10))+Bd
