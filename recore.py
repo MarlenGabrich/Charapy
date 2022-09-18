@@ -6,10 +6,14 @@ from scipy.optimize import curve_fit
 
 class Foos:
     def __init__(self):
-        print('in init')
-        ...
+        self.com = {'self.cn': {7,8,9,10,11,12,13,14,15,16,17
+        ,18,19,20,21,22,23,24,25,26,27,28,29},
+        'self.z': {2.87,4.08,3.51,3.26,2.51,2.24,2.18,2.07,2.03
+        ,1.67,1.38,1.19,1.02,0.89,0.78,0.72,0.64,0.56,0.53,0.48
+        ,0.46,0.45}
+        }
 
-    def carbon_number_foo(self,z,*A,B) -> dict or list or float:
+    def carbon_number_foo(self,z,A=None,B=None) -> float:
         """Carbon number fraction function 
 
         Estimates the carbon number based on a composition
@@ -21,8 +25,8 @@ class Foos:
         ----------
         z: float
           Molar fraction of component
-        A, B: float
-            fit parameters
+        *kwargs: float
+            A, B fit parameters
 
         Returns 
         -------
@@ -30,12 +34,19 @@ class Foos:
             number of single carbon number 
     
         """
+        if A is None or B is None:
+            self.cn = self.com['cn']
+            self.z = self.com['z']
+
+            A,B = Foo_fit.fit_AB(self.cn,self.z)
+            return A + B*np.log (z)
+            
         return A + B*np.log(z)
 
 class Distribution_pedersen (Foos):
     def __init__(self):
         ...
-    def p_density(self, cn, *L, D):
+    def p_density(self, cn, *L, D) -> dict or list or float: 
         """ Densities function
 
         Estimates the densities from C6 onwards 
