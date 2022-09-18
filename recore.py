@@ -1,7 +1,6 @@
 #!usr/bin/env python3
-from typing import List
 import numpy as np
-from math import sqrt
+from math import sqrt, log10 
 from scipy.optimize import curve_fit
 
 class Foos:
@@ -12,8 +11,9 @@ class Foos:
         ,1.67,1.38,1.19,1.02,0.89,0.78,0.72,0.64,0.56,0.53,0.48
         ,0.46,0.45}
         }
+        self.carbon_number = []
 
-    def carbon_number_foo(self,z,A=None,B=None) -> float:
+    def carbon_number_foo(self, z, A=None, B=None) -> set:
         """Carbon number fraction function 
 
         Estimates the carbon number based on a composition
@@ -23,7 +23,7 @@ class Foos:
       
         Parameters
         ----------
-        z: float
+        z: set
           Molar fraction of component
         *kwargs: float
             A, B fit parameters
@@ -34,14 +34,18 @@ class Foos:
             number of single carbon number 
     
         """
-        if A is None or B is None:
-            self.cn = self.com['cn']
-            self.z = self.com['z']
+        
+        if A is None and B is None:
+            self.cn = self.com['self.cn']
+            self.z = self.com['self.z']
 
             A,B = Foo_fit.fit_AB(self.cn,self.z)
-            return A + B*np.log (z)
-            
-        return A + B*np.log(z)
+
+        for item in z:
+                cn = A + B*np.log10 (item)
+                carbon_number = self.carbon_number.append(cn)
+        
+        return carbon_number
 
 class Distribution_pedersen (Foos):
     def __init__(self):
@@ -175,17 +179,19 @@ class Distribution_cismondi(Foos):
         return Ad*(np.exp(-cn/10))+Bd
 
 class Foo_fit(Distribution_pedersen, Distribution_cismondi): 
-    def __init__(self):
-        self.foos = Foos()
+    foos = Foos()
 
-    def fit_AB(self,cn,z):
+    def __init__(self):
+        ...     
+
+    def fit_AB(self,cn,z) -> set:
         """ Parameter setting function
 
         Parameters
         ----------
-        cn: float
+        cn: set
             carbon number
-        z: float
+        z: set
             molar fraction
 
         Return
@@ -193,10 +199,10 @@ class Foo_fit(Distribution_pedersen, Distribution_cismondi):
         A,B: float
             fit parameters
         """
+        self.A, self.B = curve_fit(self.foos.carbon_number_foo
+        , cn, z)
 
-        self.A, self.B = curve_fit(self.foos.carbon_number_foo, cn, z, p0=[1,1])[0]
-
-        return {'A':self.A, 'B': self.B}
+        return self.A, self.B
 
     def fit_LM(self, cn, d):
         """ Parameter setting function
