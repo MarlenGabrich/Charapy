@@ -1,7 +1,5 @@
-from inspect import CO_NESTED
-from math import sqrt
-from xxlimited import foo
 import numpy as np
+from math import sqrt
 from scipy.optimize import curve_fit
 
 class Foos():
@@ -164,7 +162,7 @@ class Distribution_cismondi(Foos):
 
 class Foo_fit(Distribution_pedersen, Distribution_cismondi): 
     def __init__(self):
-        ...
+        self.foos = Foos()
 
     def fit_AB(self,cn,z):
         """ Parameter setting function
@@ -182,7 +180,7 @@ class Foo_fit(Distribution_pedersen, Distribution_cismondi):
             fit parameters
         """
 
-        self.A, self.B = curve_fit(Foos().carbon_number_foo, cn, z)[0]
+        self.A, self.B = curve_fit(self.foos.carbon_number_foo, cn,z,p0=[1,1])[0]
 
         return {'A':self.A, 'B': self.B}
 
@@ -256,25 +254,23 @@ class Foo_fit(Distribution_pedersen, Distribution_cismondi):
 
         return {'Ac': self.Ac, 'Bc': self.Bc}   
 
-class Correlations():
-    dic_coeff = {
-        "PR": {
-            'c1':73.4043, 'c2':97.352, 'c3':0.618744, 'c4': -2059.32,
+class Correlations:
+    def __init__(self,EoS,*x):
+        self.dic_coeff = {
+        "PR": {'c1':73.4043, 'c2':97.352, 'c3':0.618744, 'c4': -2059.32,
             'd1':0.0728462, 'd2':2.18811, 'd3': 163.91, 'd4': -4043.23, 'd5': 25,
-            'e1': 0.373765, 'e2': 0.00549269, 'e3': 0.00117934, 'e4':-0.00000493049
-                },
+            'e1': 0.373765, 'e2': 0.00549269, 'e3': 0.00117934, 'e4':-0.00000493049},
 
         "SRK": {
                 'c1':163.12, 'c2':86.052, 'c3':0.43375, 'c4': -1877.4,
             'd1':-0.13408, 'd2':2.5019, 'd3': 208.46, 'd4': -3987.2, 'd5': 2.0,
             'e1': 0.74310, 'e2': 0.0048122, 'e3': 0.0096707, 'e4':-0.0000037184}
-                }
+            }
 
-    def __init__(self,EoS,*x):
         if isinstance(EoS, str):
             if x and isinstance(x, str): 
-                return dic_coef[EoS](x)
-            return dic_coef[EoS]
+                return self.dic_coeff[EoS](x)
+            return self.dic_coeff[EoS]
         else:
             raise ValueError("Tiene que pasar una str")
 
