@@ -1,12 +1,15 @@
+#!usr/bin/env python3
+from typing import List
 import numpy as np
 from math import sqrt
 from scipy.optimize import curve_fit
 
-class Foos():
+class Foos:
     def __init__(self):
+        print('in init')
         ...
 
-    def carbon_number_foo(self,z,*A,B):
+    def carbon_number_foo(self,z,*A,B) -> dict or list or float:
         """Carbon number fraction function 
 
         Estimates the carbon number based on a composition
@@ -180,7 +183,7 @@ class Foo_fit(Distribution_pedersen, Distribution_cismondi):
             fit parameters
         """
 
-        self.A, self.B = curve_fit(self.foos.carbon_number_foo, cn,z,p0=[1,1])[0]
+        self.A, self.B = curve_fit(self.foos.carbon_number_foo, cn, z, p0=[1,1])[0]
 
         return {'A':self.A, 'B': self.B}
 
@@ -273,30 +276,7 @@ class Correlations:
             return self.dic_coeff[EoS]
         else:
             raise ValueError("Tiene que pasar una str")
-
-    def coeffi(self,*kwargs):
-        """ Coefficients data set to SRK or PR 
-
-        Parameters
-        ----------
-        EoS: str
-            Equation of state --> agregar línea para pasar el input a mayúscula para evitar errores
-
-        Return
-        ------
-        c1,c2,c3,c4: float
-            fit parameters to critical temperature
-        d1,d2,d3,d4,d5: float
-            fit parameters to critical presion
-        e1,e2,e3,e4: float
-            fit parameters to m_factor
-        """
-        x = kwargs
-        if isinstance(x, str):
-            return self.EoS[x]
-        else:
-            raise ValueError("Tiene que pasar una str válida")
-
+            
     def critical_temperature(self, molecular_weight,density,
                             c1=None,c2=None,c3=None,c4=None):
         """Critical temperature correlation
