@@ -1,5 +1,4 @@
 #!usr/bin/env python3
-from venv import create
 import numpy as np
 from math import sqrt, log10
 from scipy.optimize import curve_fit
@@ -134,7 +133,7 @@ class Distribution_pedersen(Foos):
 
 class Distribution_cismondi(Foos):
     def __init__(self):
-        ...
+        self.ret = []
 
     def c_molar_fraction(self, cn:set, Ac=None, Bc=None):
         """ Molar fraction function
@@ -158,7 +157,10 @@ class Distribution_cismondi(Foos):
         if Ac is None and Bc is None:
             Ac, Bc = Foos().intro_fit(foo_fit.fit_AcBc, 'cn', 'z')
 
-        return np.exp(Ac * cn + Bc)
+        for item in cn:
+            self.ret = self.ret.append(np.exp(Ac*item + Bc))
+            
+        return self.ret
 
     def c_molecular_weight(self, cn:set, C=None):
 
@@ -328,7 +330,7 @@ class Correlations:
     def __init__(self, EoS):
         self.dic_coeff = self.dic_coeff[EoS]
 
-    def critical_temperature(self, molecular_weight, density,
+    def critical_temperature(self, molecular_weight:set, density:set,
                              c1=None, c2=None, c3=None, c4=None):
         """Critical temperature correlation
         
@@ -357,7 +359,7 @@ class Correlations:
                 + c3 * molecular_weight * (c4 / molecular_weight)
         )
 
-    def critical_pression(self, molecular_weight, density,
+    def critical_pression(self, molecular_weight:set, density:set,
                           d1=None, d2=None, d3=None, d4=None, d5=None):
         """Critical pression correlation
         
@@ -386,7 +388,7 @@ class Correlations:
 
         return np.exp(pression_log)
 
-    def m_factor_foo(self, molecular_weight, density,
+    def m_factor_foo(self, molecular_weight:set, density:set,
                  e1=None, e2=None, e3=None, e4=None):
 
         """ *m* factor (links to acentric factor as appropiate)
@@ -413,7 +415,7 @@ class Correlations:
         + e4 * (molecular_weight * (np.exp(2)))
         return self.m_factor
 
-    def accentric_factor(self, m_f):
+    def accentric_factor(self, m_f=None):
         """ Accentric factor function
         
         Parameters
@@ -472,7 +474,7 @@ class Residual_fraction(Proper_plus, Foo_fit):
         self.molecularweight_max = mw_max
         self.molarfraction_max = mf_max
 
-    def carbon_number_max(self, carbon_range:set, Ac = None, Bc=None, C=None):
+    def carbon_number_max(self, carbon_range:list , Ac= None, Bc= None, C=None):
         """Maximum carbon number based on Cismondi's observations
         
         Parameters
@@ -490,12 +492,6 @@ class Residual_fraction(Proper_plus, Foo_fit):
         carbonnumber_max: int
             Maximun carbon number
         """
-        foo_fit = Foo_fit()
-
-        if Ac is None or Bc is None:
-            Ac, Bc = Foos().intro_fit(foo_fit.fit_AcBc, 'cn', 'z')
-        if C is None:
-            C = Foos().intro_fit(foo_fit.fit_C, 'cn', 'mw')
 
         distribution_cismondi = Distribution_cismondi()
 
@@ -506,9 +502,11 @@ class Residual_fraction(Proper_plus, Foo_fit):
 
         proper_plus = Proper_plus()
         
+        count = -1
         for i in carbon_range:
+            count +=1
             molecularplus, molarfractionplus = proper_plus.properties_plus(
-                molarfraction_values,molecularweight_values,i)
+                molarfraction_values[count],molecularweight_values[count],i)
 
             carbonnumber_max +=1
 
