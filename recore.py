@@ -1,4 +1,5 @@
 #!usr/bin/env python3
+from venv import create
 import numpy as np
 from math import sqrt, log10
 from scipy.optimize import curve_fit
@@ -437,3 +438,68 @@ class Correlations:
         ac_factor = (-B - sqrt(B * np.exp(2) - 4 * A * C)) / (2 * A)
 
         return ac_factor
+
+class Proper_plus():
+    def __init__(self):
+        ...
+    def properties_plus(self, molarfraction_values, molecularweight_values, i):
+        """Function to calculate residual fraction properties
+        
+        Parameters
+        ----------
+        i: int
+            Carbon number into range 
+        molarfraction_values: float
+            Molar fraction values to i
+        molecularweight_values: float
+            Molecular weight values to i
+
+        Return
+        ------
+        molecularplus: float
+            Molecular values to residual fraction
+        molarplus: float
+            Molar fraction to residual fraction
+        """
+        molecularplus = (molarfraction_values[:i]*molecularweight_values[:i]).sum()/(molarfraction_values[:i].sum())
+        molarplus = molarfraction_values[:i].sum()
+
+        return molecularplus, molarplus
+
+class Residual_fraction(Distribution_cismondi, Proper_plus):
+    def __init__(self,mw_max,mf_max):
+        self.molecularweight_max = mw_max
+        self.molarfraction_max = mf_max
+
+    def carbon_number_max(self, carbon_range:set):
+        """Maximum carbon number based on Cismondi's observations
+        
+        Parameters
+        ----------
+        carbon_range: int
+            Carbon range to distribute
+        select_function: function 
+            Distribution function
+
+        Returns
+        -------
+        carbonnumber_max: int
+            Maximun carbon number
+        """
+        distribution_cismondi = Distribution_cismondi()
+        molarfraction_values = distribution_cismondi.c_molar_fraction(carbon_range,self.Ac,self.Bc)
+        molecularweight_values = distribution_cismondi.c_molecular_weight(carbon_range,self.C)
+        carbonnumber_max = carbon_range.values[0]-1
+
+        proper_plus = Proper_plus()
+        
+        for i in carbon_range:
+            molecularplus, molarfractionplus = proper_plus.properties_plus(
+                molarfraction_values,molecularweight_values,i)
+
+            carbonnumber_max +=1
+
+            if molecularplus > self.molecularweight_max or molarfractionplus > self.molarfraction_max:
+                break 
+        
+        return carbonnumber_max
