@@ -1,5 +1,4 @@
 #!usr/bin/env python3
-from email.errors import NonPrintableDefect
 import numpy as np
 from math import sqrt, log10
 from scipy.optimize import curve_fit
