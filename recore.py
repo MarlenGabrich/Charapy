@@ -466,7 +466,7 @@ class Proper_plus():
 
         return molecularplus, molarplus
 
-class Residual_fraction(Distribution_cismondi, Proper_plus):
+class Residual_fraction(Distribution_cismondi, Proper_plus, Foo_fit):
     def __init__(self,mw_max,mf_max):
         self.molecularweight_max = mw_max
         self.molarfraction_max = mf_max
