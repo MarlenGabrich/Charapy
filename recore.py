@@ -1,32 +1,31 @@
 #!usr/bin/env python3
-from email.errors import NonPrintableDefect
 import numpy as np
 from math import sqrt, log10 
 from scipy.optimize import curve_fit
 
 class Foos():
-    com = {'self.cn': {7,8,9,10,11,12,13,14,15,16,17
+    com = {'cn': {7,8,9,10,11,12,13,14,15,16,17
         ,18,19,20,21,22,23,24,25,26,27,28,29},
-        'self.z': {2.87,4.08,3.51,3.26,2.51,2.24,2.18,2.07,2.03
-        ,1.67,1.38,1.19,1.02,0.89,0.78,0.72,0.64,0.56,0.53,0.48
+        'z': {2.87,4.08,3.51,3.26,2.51,2.24,2.18,2.07,2.03
+        ,1.67,1.38,1.36,1.19,1.02,0.89,0.78,0.72,0.64,0.56,0.53,0.48
         ,0.46,0.45}
-        ,'self.dens': {0.738,0.765,0.781,0.792,0.796,0.810,0.825
+        ,'dens': {0.738,0.765,0.781,0.792,0.796,0.810,0.825
         ,0.836,0.842,0.849,0.845,0.848,0.858,0.863,0.868,0.873
         ,0.877,0.881,0.885,0.889,0.893,0.897,0.900}
-        ,'self.mw':{96,107,121,134,147,161,175,190,206,222,237,251
+        ,'mw':{96,107,121,134,147,161,175,190,206,222,237,251
         ,263,275,291,305,318,331,345,359,374,388,402,449}
         }
     def __init__(self):
-        self.doyuwa = []
+        ...
     
     def intro_fit(self,foo,x,y):
-        self.x = self.com[x]
-        self.y = self.com[y]
+        set_x = self.com[x]
+        set_y = self.com[y]
 
-        x,y = foo(self.x,self.y)
+        x,y = foo(list(set_x),list(set_y))
         return x,y
 
-    def carbon_number_foo(self, z = set, A=None, B=None) :
+    def carbon_number_foo(self, z:set, A=None, B=None) :
         """Carbon number fraction function 
 
         Estimates the carbon number based on a composition
@@ -45,17 +44,17 @@ class Foos():
         -------
         carbon_number: float 
             number of single carbon number 
-    
         """
+        foo_fit = Foo_fit()
         if A is None and B is None:
-            self.A,self.B = Foos().intro_fit(Foo_fit.fit_AB,'cn','z')
+            A,B = Foos().intro_fit(foo_fit.fit_AB,'cn','z')
     
-        return self.A + self.B*np.log10 (z)
+        return A + B*np.log10 (z)
 
 class Distribution_pedersen (Foos):
     def __init__(self):
         ...
-    def p_density(self, cn = set, L = None, M = None): 
+    def p_density(self, cn:set, L = None, M = None): 
         """ Densities function
 
         Estimates the densities from C6 onwards 
@@ -75,12 +74,13 @@ class Distribution_pedersen (Foos):
 
         """
 
+        foo_fit = Foo_fit()
         if L is None and M is None:
-            L,M = Foos().intro_fit(Foo_fit.fit_LM, 'cn', 'dens')
+            L,M = Foos().intro_fit(foo_fit.fit_LM, 'cn', 'dens')
                    
         return L + M*np.log10(cn)
         
-    def p_molar_fraction(self, cn = set, A = None, B = None):
+    def p_molar_fraction(self, cn:set, A = None, B = None):
         """Molar fraction function
         
         Estimates the molar fraction based on carbon number
@@ -106,7 +106,7 @@ class Distribution_pedersen (Foos):
 
         return np.exp(A + B*cn)
 
-    def p_molecular_weight(self, cn = set):
+    def p_molecular_weight(self, cn:set):
         """ Molecular weight function
 
         Estimates the molecular weight based on a 
@@ -129,7 +129,7 @@ class Distribution_pedersen (Foos):
 class Distribution_cismondi(Foos):
     def __init__(self):
         ...
-    def c_molar_fraction(self, cn = set, Ac=None, Bc=None):
+    def c_molar_fraction(self, cn:set, Ac=None, Bc=None):
         """ Molar fraction function
 
         Estimates the molar fraction based on carbon number
@@ -153,7 +153,7 @@ class Distribution_cismondi(Foos):
 
         return np.exp(Ac*cn + Bc)
 
-    def c_molecular_weight(self,cn = set, C = None):
+    def c_molecular_weight(self,cn:set, C = None):
     
         """ Molecular weight function
 
@@ -178,7 +178,7 @@ class Distribution_cismondi(Foos):
 
         return 84 + C*(cn-6)
 
-    def c_density(self,cn = set, Ad=None):
+    def c_density(self,cn:set, Ad=None):
         """ Density function
         Estimates the densities from C6 onwards 
         based on [...]
@@ -207,11 +207,10 @@ class Distribution_cismondi(Foos):
 
 class Foo_fit(Distribution_pedersen, Distribution_cismondi): 
     foos = Foos()
-
     def __init__(self):
-        ...     
+        pass    
 
-    def fit_AB(self,cn = set,z = set):
+    def fit_AB(self,cn:set,z:set):
         """ Parameter setting function
 
         Parameters
@@ -226,12 +225,12 @@ class Foo_fit(Distribution_pedersen, Distribution_cismondi):
         A,B: float
             fit parameters
         """
-        self.A, self.B = curve_fit(self.foos.carbon_number_foo
-        , cn, z)
+        self.A, self.B = curve_fit(self.foos.carbon_number_foo, cn
+        , z)[0]
 
         return self.A, self.B
 
-    def fit_LM(self, cn = set, density = set):
+    def fit_LM(self, cn:set, density = set):
         """ Parameter setting function
 
         Parameters
@@ -248,9 +247,9 @@ class Foo_fit(Distribution_pedersen, Distribution_cismondi):
         """ 
         self.L, self.M = curve_fit(Distribution_pedersen().p_density, cn, density)[0]
 
-        return {'L': self.L, 'M': self.M}
+        return self.L, self.M
     
-    def fit_C(self,cn = set,mw = set):
+    def fit_C(self,cn:set,mw = set):
         """ Parameter setting function
         Parameters
         ----------
@@ -267,7 +266,7 @@ class Foo_fit(Distribution_pedersen, Distribution_cismondi):
 
         return self.C
     
-    def fit_Ad(self,cn = set,d = set):
+    def fit_Ad(self,cn:set,d = set):
         """ Parameter setting function
         Parameters
         ----------
@@ -284,7 +283,7 @@ class Foo_fit(Distribution_pedersen, Distribution_cismondi):
         self.Ad = curve_fit(Distribution_cismondi().c_density,cn,d)[0]
         return self.Ad
 
-    def fit_AcBc(self,cn = set, mf=set):
+    def fit_AcBc(self,cn:set, mf=set):
         """ Parameter setting function
         Parameters
         ----------
@@ -302,8 +301,7 @@ class Foo_fit(Distribution_pedersen, Distribution_cismondi):
         return self.Ac, self.Bc  
 
 class Correlations:
-    def __init__(self,EoS, x=None):
-        self.dic_coeff = {
+    self.dic_coeff = {
         "PR": {'c1':73.4043, 'c2':97.352, 'c3':0.618744, 'c4': -2059.32,
             'd1':0.0728462, 'd2':2.18811, 'd3': 163.91, 'd4': -4043.23, 'd5': 25,
             'e1': 0.373765, 'e2': 0.00549269, 'e3': 0.00117934, 'e4':-0.00000493049},
@@ -314,12 +312,8 @@ class Correlations:
             'e1': 0.74310, 'e2': 0.0048122, 'e3': 0.0096707, 'e4':-0.0000037184}
             }
 
-        if isinstance(EoS, str):
-            if x is not None and isinstance(x, str): 
-                return self.dic_coeff[EoS](x)
-            return self.dic_coeff[EoS]
-        else:
-            raise ValueError("Tiene que pasar una str")
+    def __init__(self, EoS):
+        self.dic_coeff = self.dic_coeff[EoS]
             
     def critical_temperature(self, molecular_weight,density,
                             c1=None,c2=None,c3=None,c4=None):
@@ -340,10 +334,10 @@ class Correlations:
             Critical temperature
         """
         if c1 is None and c2 is None and c3 is None and c4 is None:
-            c1 = self.EoS['c1']
-            c2 = self.EoS['c2']
-            c3 = self.EoS['c3']
-            c4 = self.EoS['c4']
+            c1 = self.dic_coeff['c1']
+            c2 = self.dic_coeff['c2']
+            c3 = self.dic_coeff['c3']
+            c4 = self.dic_coeff['c4']
         
         return (
             c1*density+c2*(np.log(molecular_weight))
