@@ -2,7 +2,7 @@
 import numpy as np
 from math import sqrt, log10
 from scipy.optimize import curve_fit
-
+import operator 
 
 class Foos():
     com = {'cn': {7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17
@@ -157,7 +157,8 @@ class Distribution_cismondi(Foos):
         if Ac is None and Bc is None:
             Ac, Bc = Foos().intro_fit(foo_fit.fit_AcBc, 'cn', 'z')
         
-        return np.exp(Ac*cn + Bc)
+        Ac_cn = list(map(operator.mul,cn,Ac))
+        return np.exp(Ac_cn + Bc)
 
     def c_molecular_weight(self, cn:set, C=None):
 
@@ -471,7 +472,7 @@ class Residual_fraction(Proper_plus, Foo_fit):
         self.molecularweight_max = mw_max
         self.molarfraction_max = mf_max
 
-    def carbon_number_max(self, carbon_range:list , Ac= None, Bc= None, C=None):
+    def carbon_number_max(self, carbon_range:set , Ac= None, Bc= None, C=None):
         """Maximum carbon number based on Cismondi's observations
         
         Parameters
