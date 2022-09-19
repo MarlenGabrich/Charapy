@@ -133,7 +133,7 @@ class Distribution_pedersen(Foos):
 
 class Distribution_cismondi(Foos):
     def __init__(self):
-        self.ret = []
+        ...
 
     def c_molar_fraction(self, cn:set, Ac=None, Bc=None):
         """ Molar fraction function
@@ -156,11 +156,8 @@ class Distribution_cismondi(Foos):
         foo_fit = Foo_fit()
         if Ac is None and Bc is None:
             Ac, Bc = Foos().intro_fit(foo_fit.fit_AcBc, 'cn', 'z')
-
-        for item in cn:
-            self.ret = self.ret.append(np.exp(Ac*item + Bc))
-            
-        return self.ret
+        
+        return np.exp(Ac*cn + Bc)
 
     def c_molecular_weight(self, cn:set, C=None):
 
