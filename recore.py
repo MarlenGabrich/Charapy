@@ -467,8 +467,8 @@ class Proper_plus():
         return molecularplus, molarplus
 
 class Residual_fraction(Proper_plus, Foo_fit):
-    def __init__(self,mw_max,mf_max):
 
+    def __init__(self,mw_max,mf_max):
         self.molecularweight_max = mw_max
         self.molarfraction_max = mf_max
 
@@ -491,12 +491,11 @@ class Residual_fraction(Proper_plus, Foo_fit):
             Maximun carbon number
         """
         foo_fit = Foo_fit()
-        foos = Foos()
 
         if Ac is None or Bc is None:
-            Ac, Bc = foos.intro_fit(foo_fit.fit_AcBc, 'cn', 'z')
+            Ac, Bc = Foos().intro_fit(foo_fit.fit_AcBc, 'cn', 'z')
         if C is None:
-            C = foos.intro_fit(foo_fit.fit_C, 'cn', 'mw')
+            C = Foos().intro_fit(foo_fit.fit_C, 'cn', 'mw')
 
         distribution_cismondi = Distribution_cismondi()
 
