@@ -471,7 +471,7 @@ class Residual_fraction(Distribution_cismondi, Proper_plus, Foo_fit):
         self.molecularweight_max = mw_max
         self.molarfraction_max = mf_max
 
-    def carbon_number_max(self, carbon_range:set):
+    def carbon_number_max(self, carbon_range:set, A = None, B=None, C=None):
         """Maximum carbon number based on Cismondi's observations
         
         Parameters
@@ -486,6 +486,15 @@ class Residual_fraction(Distribution_cismondi, Proper_plus, Foo_fit):
         carbonnumber_max: int
             Maximun carbon number
         """
+        foo_fit = Foo_fit()
+
+        if A is None:
+            A = Foos().intro_fit(foo_fit.fit_AB, 'cn', 'z')[0]
+        if B is None:
+            B = Foos().intro_fit(foo_fit.fit_AB, 'cn', 'z')[1]
+        if C is None:
+            C = Foos().intro_fit(foo_fit.fit_C, 'cn', 'mw')
+
         distribution_cismondi = Distribution_cismondi()
         molarfraction_values = distribution_cismondi.c_molar_fraction(carbon_range,self.Ac,self.Bc)
         molecularweight_values = distribution_cismondi.c_molecular_weight(carbon_range,self.C)
