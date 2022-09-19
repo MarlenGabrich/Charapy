@@ -466,38 +466,43 @@ class Proper_plus():
 
         return molecularplus, molarplus
 
-class Residual_fraction(Distribution_cismondi, Proper_plus, Foo_fit):
+class Residual_fraction(Proper_plus, Foo_fit):
     def __init__(self,mw_max,mf_max):
+
         self.molecularweight_max = mw_max
         self.molarfraction_max = mf_max
 
-    def carbon_number_max(self, carbon_range:set, A = None, B=None, C=None):
+    def carbon_number_max(self, carbon_range:set, Ac = None, Bc=None, C=None):
         """Maximum carbon number based on Cismondi's observations
         
         Parameters
         ----------
-        carbon_range: int
+        carbon_range: set
             Carbon range to distribute
-        select_function: function 
-            Distribution function
-
+        Ac: float
+            fit parameter
+        Bc: float
+            fit parameter
+        C: float
+            fit parameter 
         Returns
         -------
         carbonnumber_max: int
             Maximun carbon number
         """
         foo_fit = Foo_fit()
+        foos = Foos()
 
-        if A is None:
-            A = Foos().intro_fit(foo_fit.fit_AB, 'cn', 'z')[0]
-        if B is None:
-            B = Foos().intro_fit(foo_fit.fit_AB, 'cn', 'z')[1]
+        if Ac is None or Bc is None:
+            Ac, Bc = foos.intro_fit(foo_fit.fit_AcBc, 'cn', 'z')
         if C is None:
-            C = Foos().intro_fit(foo_fit.fit_C, 'cn', 'mw')
+            C = foos.intro_fit(foo_fit.fit_C, 'cn', 'mw')
 
         distribution_cismondi = Distribution_cismondi()
-        molarfraction_values = distribution_cismondi.c_molar_fraction(carbon_range,self.Ac,self.Bc)
-        molecularweight_values = distribution_cismondi.c_molecular_weight(carbon_range,self.C)
+
+        molarfraction_values = distribution_cismondi.c_molar_fraction(carbon_range,Ac,Bc)
+        molecularweight_values = distribution_cismondi.c_molecular_weight(carbon_range,C)
+        
         carbonnumber_max = carbon_range.values[0]-1
 
         proper_plus = Proper_plus()
