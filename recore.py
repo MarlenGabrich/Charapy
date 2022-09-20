@@ -2,7 +2,6 @@
 import numpy as np
 from math import sqrt, log10
 from scipy.optimize import curve_fit
-import operator 
 
 class Foos():
     com = {'cn': {7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17
