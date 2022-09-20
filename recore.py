@@ -493,7 +493,7 @@ class Residual_fraction(Proper_plus, Foo_fit):
         distribution_cismondi = Distribution_cismondi()
         proper_plus = Proper_plus()
 
-        carbonnumber_max = carbon_range.values[0]-1
+        carbonnumber_max = (carbon_range[0])-1
 
         for item in carbon_range:
             molarfraction_values = distribution_cismondi.c_molar_fraction(
