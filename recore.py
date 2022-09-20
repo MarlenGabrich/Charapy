@@ -157,8 +157,7 @@ class Distribution_cismondi(Foos):
         if Ac is None and Bc is None:
             Ac, Bc = Foos().intro_fit(foo_fit.fit_AcBc, 'cn', 'z')
         
-        Ac_cn = list(map(operator.mul,cn,Ac))
-        return np.exp(Ac_cn + Bc)
+        return np.exp(list(map(operator.mul,cn,Ac)) + Bc)
 
     def c_molecular_weight(self, cn:set, C=None):
 
