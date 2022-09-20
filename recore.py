@@ -441,7 +441,7 @@ class Correlations:
 class Proper_plus():
     def __init__(self):
         ...
-    def properties_plus(self, molarfraction_values, molecularweight_values, i):
+    def properties_plus(self, molarfraction_values, molecularweight_values):
         """Function to calculate residual fraction properties
         
         Parameters
@@ -460,8 +460,8 @@ class Proper_plus():
         molarplus: float
             Molar fraction to residual fraction
         """
-        molecularplus = (molarfraction_values[:i]*molecularweight_values[:i]).sum()/(molarfraction_values[:i].sum())
-        molarplus = molarfraction_values[:i].sum()
+        molecularplus = (molarfraction_values*molecularweight_values).sum()/(molarfraction_values.sum())
+        molarplus = molarfraction_values.sum()
 
         return molecularplus, molarplus
 
@@ -470,6 +470,8 @@ class Residual_fraction(Proper_plus, Foo_fit):
     def __init__(self,mw_max,mf_max):
         self.molecularweight_max = mw_max
         self.molarfraction_max = mf_max
+        self.molarfraction_set = []
+        self.molecularweight_set = []
 
     def carbon_number_max(self, carbon_range:set , Ac= None, Bc= None, C=None):
         """Maximum carbon number based on Cismondi's observations
@@ -493,21 +495,25 @@ class Residual_fraction(Proper_plus, Foo_fit):
         distribution_cismondi = Distribution_cismondi()
         proper_plus = Proper_plus()
 
-        carbonnumber_max = (carbon_range[0])-1
+        carbonnumber_max = carbon_range[0]
 
         for item in carbon_range:
-            molarfraction_values = distribution_cismondi.c_molar_fraction(
-                item,Ac,Bc
-                )
+            carbonnumber_max +=1
+
+            molarfraction_values1 = self.molarfraction_set
+            molarfraction_values = molarfraction_values1.append(
+                distribution_cismondi.c_molar_fraction(
+                item,Ac,Bc)
+            )
             
-            molecularweight_values = distribution_cismondi.c_molecular_weight(
-                item,C
+            molecularweight_values1 = self.molecularweight_set
+            molecularweight_values = molecularweight_values1.append(
+                distribution_cismondi.c_molecular_weight(
+                item,C)
                 )
 
             molecularplus, molarfractionplus = proper_plus.properties_plus(
-                molarfraction_values,molecularweight_values,item)
-
-            carbonnumber_max +=1
+            molarfraction_values,molecularweight_values)
 
             if molecularplus > self.molecularweight_max or molarfractionplus > self.molarfraction_max:
                 break 
