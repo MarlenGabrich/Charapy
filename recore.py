@@ -157,7 +157,7 @@ class Distribution_cismondi(Foos):
         if Ac is None and Bc is None:
             Ac, Bc = Foos().intro_fit(foo_fit.fit_AcBc, 'cn', 'z')
         
-        return np.exp(list(map(operator.mul,cn,Ac)) + Bc)
+        return np.exp((Ac*cn) + Bc)
 
     def c_molecular_weight(self, cn:set, C=None):
 
@@ -491,19 +491,21 @@ class Residual_fraction(Proper_plus, Foo_fit):
         """
 
         distribution_cismondi = Distribution_cismondi()
+        proper_plus = Proper_plus()
 
-        molarfraction_values = distribution_cismondi.c_molar_fraction(carbon_range,Ac,Bc)
-        molecularweight_values = distribution_cismondi.c_molecular_weight(carbon_range,C)
-        
         carbonnumber_max = carbon_range.values[0]-1
 
-        proper_plus = Proper_plus()
-        
-        count = -1
-        for i in carbon_range:
-            count +=1
+        for item in carbon_range:
+            molarfraction_values = distribution_cismondi.c_molar_fraction(
+                item,Ac,Bc
+                )
+            
+            molecularweight_values = distribution_cismondi.c_molecular_weight(
+                item,C
+                )
+
             molecularplus, molarfractionplus = proper_plus.properties_plus(
-                molarfraction_values[count],molecularweight_values[count],i)
+                molarfraction_values,molecularweight_values,item)
 
             carbonnumber_max +=1
 
