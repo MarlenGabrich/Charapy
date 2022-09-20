@@ -497,9 +497,13 @@ class Residual_fraction(Proper_plus, Foo_fit):
         proper_plus = Proper_plus()
 
         carbonnumber_max = carbon_range[0]
+        mf_set = []
+        mw_set = [])
 
-        molarfraction_values = distribution_cismondi.c_molar_fraction(carbon_range,Ac,Bc)
-        molecularweight_values = distribution_cismondi.c_molecular_weight(carbon_range,C)
+        for item in carbon_range:
+            molarfraction_values = mf_set.append(distribution_cismondi.c_molar_fraction(item,Ac,Bc))
+            molecularweight_values = mw_set.append(distribution_cismondi.c_molecular_weight(item,C))
+        
         molecularplus, molarfractionplus = proper_plus.properties_plus(
             molarfraction_values, molecularweight_values, item
         )
