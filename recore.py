@@ -83,7 +83,7 @@ class Distribution_pedersen(Foos):
 
         return L + M * np.log10(cn)
 
-    def p_molar_fraction(self, cn:set, A=None, B=None):
+    def p_molar_fraction(self, cn:set or float, A=None, B=None):
         """Molar fraction function
         
         Estimates the molar fraction based on carbon number
@@ -109,7 +109,7 @@ class Distribution_pedersen(Foos):
 
         return np.exp(A + B * cn)
 
-    def p_molecular_weight(self, cn:set):
+    def p_molecular_weight(self, cn:set or float):
         """ Molecular weight function
 
         Estimates the molecular weight based on a 
@@ -134,7 +134,7 @@ class Distribution_cismondi(Foos):
     def __init__(self):
         ...
 
-    def c_molar_fraction(self, cn:set, Ac=None, Bc=None):
+    def c_molar_fraction(self, cn:set or float, Ac=None, Bc=None):
         """ Molar fraction function
 
         Estimates the molar fraction based on carbon number
@@ -158,7 +158,7 @@ class Distribution_cismondi(Foos):
         
         return np.exp((Ac*cn) + Bc)
 
-    def c_molecular_weight(self, cn:set, C=None):
+    def c_molecular_weight(self, cn:set or float, C=None):
 
         """ Molecular weight function
 
