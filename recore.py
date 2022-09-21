@@ -153,6 +153,7 @@ class Distribution_cismondi(Foos):
           Molar fraction of a given carbon number fraction 
         """
         foo_fit = Foo_fit()
+
         if Ac is None and Bc is None:
             Ac, Bc = Foos().intro_fit(foo_fit.fit_AcBc, 'cn', 'z')
         
@@ -178,6 +179,7 @@ class Distribution_cismondi(Foos):
             Molecular weight of a given carbon number fraction
         """
         foo_fit = Foo_fit()
+
         if C is None:
             C = Foos().intro_fit(foo_fit.fit_C, 'cn', 'mw')
 
@@ -201,6 +203,7 @@ class Distribution_cismondi(Foos):
             Density of a given carbon number fraction
         """
         foo_fit = Foo_fit()
+        
         if Ad is None:
             car = self.com['cn']
             d = self.com['dens']
@@ -440,7 +443,7 @@ class Correlations:
 class Proper_plus():
     def __init__(self):
         ...
-    def properties_plus(self, molarfraction_values, molecularweight_values,item):
+    def properties_plus(self, molarfraction_values, molecularweight_values,carbon_range):
         """Function to calculate residual fraction properties
         
         Parameters
@@ -459,7 +462,8 @@ class Proper_plus():
         molarplus: float
             Molar fraction to residual fraction
         """
-        for i in item[1,:]:
+        
+        for i in carbon_range:
             molecularplus = (
                 molarfraction_values[:i]*molecularweight_values[:i]).sum(
                 )/(molarfraction_values[:i].sum()
@@ -505,7 +509,7 @@ class Residual_fraction(Proper_plus, Foo_fit):
             molecularweight_values = mw_set.append(distribution_cismondi.c_molecular_weight(item,C))
         
         molecularplus, molarfractionplus = proper_plus.properties_plus(
-            molarfraction_values, molecularweight_values, item
+            molarfraction_values, molecularweight_values, carbon_range
         )
 
         for i,j in molecularplus, molarfractionplus:
