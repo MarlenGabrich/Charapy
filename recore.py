@@ -519,3 +519,49 @@ class Residual_fraction(Proper_plus, Foo_fit):
                 break 
         
         return carbonnumber_max
+
+
+class Lumping():
+    def __init__(self):
+        ...
+
+    def criteriotanto(self,dato):
+        l = []
+        d = []
+        count = 0
+
+        for i in dato:
+            count += 1
+            if count <= 3:
+                l.append(i)
+            else: 
+                d.append(l)
+                count = 0
+
+
+    def rangy(self,dato, coluset):
+        """ Function to det. carbon ranges for lumping
+
+        Parameters
+        ----------
+        dataset: set
+            distribution data set
+        criterio: function
+            function to lumping
+        colu: str
+            dataframe column to criterio
+
+        Return
+        ------
+        Lumy: ranges list
+            ranges list to group
+
+        """
+        lumping = Lumping()
+        lumy = lumping.criteriotanto(dato)
+
+        for li in lumy:
+            dataset = dataset[li].groupby(coluset, as_index=False).mean()
+        
+        return dataset
+                
