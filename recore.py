@@ -463,7 +463,7 @@ class Proper_plus():
             Molar fraction to residual fraction
         """
         
-        for i in carbon_range:
+        for i in range(len(carbon_range)):
             molecularplus = (
                 molarfraction_values[:i]*molecularweight_values[:i]).sum(
                 )/(molarfraction_values[:i].sum()
