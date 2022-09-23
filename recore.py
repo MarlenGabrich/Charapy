@@ -464,10 +464,11 @@ class Proper_plus():
         """
         
         for i in range(len(carbon_range)):
-            molecularplus = (
-                molarfraction_values[:i]*molecularweight_values[:i]).sum(
-                )/(molarfraction_values[:i].sum()
-                )
+            if i is not None and i>1:
+                molecularplus = (
+                    molarfraction_values[:i]*molecularweight_values[:i]).sum(
+                        )/(molarfraction_values[:i].sum()
+                        )
             molarplus = molarfraction_values[:i].sum()
 
         return molecularplus, molarplus
