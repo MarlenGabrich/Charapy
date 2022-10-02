@@ -26,7 +26,7 @@ class Foos():
         x, y = foo(list(set_x), list(set_y))
         return x, y
 
-    def carbon_number_foo(self, z: set, A=None, B=None):
+    def carbon_number_foo(self, z, A=None, B=None):
         """Carbon number fraction function 
 
         Estimates the carbon number based on a composition
@@ -134,7 +134,7 @@ class Distribution_cismondi(Foos):
     def __init__(self):
         ...
 
-    def c_molar_fraction(self, cn:set or float, Ac=None, Bc=None):
+    def c_molar_fraction(self, cn, Ac=None, Bc=None):
         """ Molar fraction function
 
         Estimates the molar fraction based on carbon number
@@ -294,7 +294,7 @@ class Foo_fit(Distribution_pedersen, Distribution_cismondi):
         self.Ad = curve_fit(distribution_cismondi.c_density, cn, d)[0]
         return self.Ad
 
-    def fit_AcBc(self, cn:set, mf:set):
+    def fit_AcBc(self, cn, mf):
         """ Parameter setting function
         Parameters
         ----------
@@ -329,7 +329,7 @@ class Correlations:
     def __init__(self, EoS):
         self.dic_coeff = self.dic_coeff[EoS]
 
-    def critical_temperature(self, molecular_weight:set, density:set,
+    def critical_temperature(self, molecular_weight, density,
                              c1=None, c2=None, c3=None, c4=None):
         """Critical temperature correlation
         
@@ -443,7 +443,7 @@ class Correlations:
 class Proper_plus():
     def __init__(self):
         ...
-    def properties_plus(self, molarfraction_values, molecularweight_values,carbon_range):
+    def properties_plus(self, molarfraction_values, molecularweight_values, carbon_range):
         """Function to calculate residual fraction properties
         
         Parameters
@@ -463,13 +463,15 @@ class Proper_plus():
             Molar fraction to residual fraction
         """
         
+        molecularplus = np.array([])
+        molarplus = np.array([])
+        
+
         for i in range(len(carbon_range)):
-            if i is not None and i>1:
-                molecularplus = (
-                    molarfraction_values[:i]*molecularweight_values[:i]).sum(
-                        )/(molarfraction_values[:i].sum()
-                        )
-            molarplus = molarfraction_values[:i].sum()
+            molecularplus= np.append(molecularplus,
+                (molarfraction_values[:i]*molecularweight_values[:i]).sum()/(
+                    molarfraction_values[:i].sum()))
+            molarplus = np.append(molarplus, molarfraction_values[:i].sum())
 
         return molecularplus, molarplus
 
@@ -479,7 +481,7 @@ class Residual_fraction(Proper_plus, Foo_fit):
         self.molecularweight_max = mw_max
         self.molarfraction_max = mf_max
 
-    def carbon_number_max(self, carbon_range:set , Ac= None, Bc= None, C=None):
+    def carbon_number_max(self, carbon_range , Ac, Bc, C):
         """Maximum carbon number based on Cismondi's observations
         
         Parameters
@@ -502,18 +504,24 @@ class Residual_fraction(Proper_plus, Foo_fit):
         proper_plus = Proper_plus()
 
         carbonnumber_max = carbon_range[0]
-        mf_set = []
-        mw_set = []
+        molarfraction_values = np.array([])
+        molecularweight_values = np.array([])
 
         for item in carbon_range:
-            molarfraction_values = mf_set.append(distribution_cismondi.c_molar_fraction(item,Ac,Bc))
-            molecularweight_values = mw_set.append(distribution_cismondi.c_molecular_weight(item,C))
+            molarfraction_values = np.append(
+                molarfraction_values, 
+                distribution_cismondi.c_molar_fraction(item,Ac,Bc)
+                )
+            molecularweight_values = np.append(
+                molecularweight_values,
+                distribution_cismondi.c_molecular_weight(item,C)
+                )
         
         molecularplus, molarfractionplus = proper_plus.properties_plus(
             molarfraction_values, molecularweight_values, carbon_range
         )
 
-        for i,j in molecularplus, molarfractionplus:
+        for i,j in zip(molecularplus, molarfractionplus):
             carbonnumber_max +=1
 
             if i > self.molecularweight_max or j > self.molarfraction_max:
@@ -526,7 +534,7 @@ class Lumping():
     def __init__(self):
         ...
 
-    def criteriotanto(self,dato):
+    def criteriotanto(self, dato):
         l = []
         d = []
         count = 0
@@ -538,8 +546,6 @@ class Lumping():
             else: 
                 d.append(l)
                 count = 0
-
-
     def rangy(self,dato, coluset):
         """ Function to det. carbon ranges for lumping
 
@@ -564,5 +570,4 @@ class Lumping():
         for li in lumy:
             dataset = dataset[li].groupby(coluset, as_index=False).mean()
         
-        return dataset
-                
+        return dataset 
