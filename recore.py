@@ -49,16 +49,16 @@ class Foos():
         """
         foo_fit = Foo_fit()
         if A is None and B is None:
-            A, B = Foos().intro_fit(foo_fit.fit_AB, 'cn', 'z')
+            A, B = Foos().intro_fit(foo_fit.fit_AB, 'z', 'cn')
 
-        return A + B * np.log10(z)
+        return A + (B*np.log(z))
 
 
 class Distribution_pedersen(Foos):
     def __init__(self):
         ...
 
-    def p_density(self, cn: set, L=None, M=None):
+    def p_density(self, cn, L=None, M=None):
         """ Densities function
 
         Estimates the densities from C6 onwards 
@@ -81,7 +81,7 @@ class Distribution_pedersen(Foos):
         if L is None and M is None:
             L, M = Foos().intro_fit(foo_fit.fit_LM, 'cn', 'dens')
 
-        return L + M * np.log10(cn)
+        return L + M * np.log(cn)
 
     def p_molar_fraction(self, cn:set or float, A=None, B=None):
         """Molar fraction function
@@ -155,7 +155,7 @@ class Distribution_cismondi(Foos):
         foo_fit = Foo_fit()
 
         if Ac is None and Bc is None:
-            Ac, Bc = Foos().intro_fit(foo_fit.fit_AcBc, 'cn', 'z')
+            Ac, Bc = Foos().intro_fit(foo_fit.fit_AcBc, 'z', 'cn')
         
         return np.exp((Ac*cn) + Bc)
 
@@ -215,12 +215,11 @@ class Distribution_cismondi(Foos):
 
 
 class Foo_fit(Distribution_pedersen, Distribution_cismondi):
-    foos = Foos()
 
     def __init__(self):
         ...
 
-    def fit_AB(self, cn: set, z: set):
+    def fit_AB(self, cn, z):
         """ Parameter setting function
 
         Parameters
@@ -235,11 +234,13 @@ class Foo_fit(Distribution_pedersen, Distribution_cismondi):
         A,B: float
             fit parameters
         """
-        self.A, self.B = curve_fit(self.foos.carbon_number_foo, cn, z)[0]
+        
+        foos = Foos()
+        self.A, self.B = curve_fit(foos.carbon_number_foo, z, cn)[0]
 
         return self.A, self.B
 
-    def fit_LM(self, cn: set, density: set):
+    def fit_LM(self, cn, density):
         """ Parameter setting function
 
         Parameters
@@ -309,7 +310,7 @@ class Foo_fit(Distribution_pedersen, Distribution_cismondi):
             fit parameter
         """
         distribution_cismondi = Distribution_cismondi()
-        self.Ac, self.Bc = curve_fit(distribution_cismondi.c_molar_fraction, cn, mf)[0]
+        self.Ac, self.Bc = curve_fit(distribution_cismondi.c_molar_fraction, mf, cn)[0]
 
         return self.Ac, self.Bc
 
@@ -358,7 +359,7 @@ class Correlations:
                 + c3 * molecular_weight * (c4 / molecular_weight)
         )
 
-    def critical_pression(self, molecular_weight:set, density:set,
+    def critical_pression(self, molecular_weight, density,
                           d1=None, d2=None, d3=None, d4=None, d5=None):
         """Critical pression correlation
         
@@ -382,8 +383,9 @@ class Correlations:
             d5 = self.dic_coeff['d5']
 
         pression_log = d1 + d2 * (
-                density * (np.exp(d5) + (d3 / molecular_weight) 
-                + (d4 / (molecular_weight) * np.exp(2))))
+                density**d5) + (
+                    d3/molecular_weight) + (
+                        d4/(molecular_weight**2))
 
         return np.exp(pression_log)
 
@@ -394,8 +396,12 @@ class Correlations:
         
         Parameters
         ----------
-        molecular_weight: float
+        molecular_weight: set
             Molecular weight function
+
+        density: set
+            Density data set
+
         e1,e2,e3,e4: float
             fit parameters
 
@@ -410,29 +416,31 @@ class Correlations:
             e3 = self.dic_coeff['e3']
             e4 = self.dic_coeff['e4']
 
-        self.m_factor = e1 + e2 * molecular_weight + e3 * density 
+        m_factor = e1 + e2 * molecular_weight + e3 * density
         + e4 * (molecular_weight * (np.exp(2)))
-        return self.m_factor
 
-    def accentric_factor(self, m_f=None):
+        return m_factor
+
+    def accentric_factor(self, m_w, den, EoS, m_f=None):
         """ Accentric factor function
         
         Parameters
         ----------
         m_factor: float
             m factor --> links to acentric factor as appropiate
-        e1,e2,e3,e4: float
-            fit parameters
+        
 
         Return
         ------
         accentric_factor: float
             Accentric factor
         """
-        if m_f is None:
-            m_factor = self.m_factor
+        correlations = Correlations(EoS)
 
-        A = 0.37464 - m_factor
+        if m_f is None:
+            m_f = correlations.m_factor_foo(m_w, den)
+
+        A = 0.37464 - m_f
         B = 1.54226
         C = -0.26992
 
