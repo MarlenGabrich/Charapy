@@ -1,8 +1,8 @@
 # CharaPy
 
-CharaPy (Characterization-Python) pretende ser un paquete de Python enfocado en la *Caracterización de la fracción residual (o fracción plus) de fluidos de reservorio* en función a modelos de distribución determinados. 
+CharaPy (Characterization-Python) pretende ser un paquete de Python enfocado en proporcionar las herramientas necesarias para realizar la *Caracterización de la fracción residual (o fracción plus) de fluidos de reservorio* en función a modelos de distribución determinados. 
 
-### Consiste en la representación de los hidrocarburos que forman parte de la fracción residual como un número conveniente de pseudocomponentes y en la estimación de los parámetros de EoS para cada uno de ellos.
+### Consiste en la distribución y representación de los hidrocarburos que forman parte de la fracción residual como un número conveniente de pseudocomponentes y en la estimación de los parámetros de EoS para cada uno de ellos.
 
 **¿Qué herramientas utiliza?**
 
