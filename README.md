@@ -14,9 +14,14 @@ Es articulado de manera tal que modelos no previstos en el desarrollo del paquet
 
 # Available properties
 ------------------------------------------------------
-* Masa molar
-* Densidad
-* Porcentaje molar
-* Temperatura crítica - Para diferentes EoS
-* Presión crítica - Para diferentes EoS
-* Factor acéntrico
+* Distributed component {
+                          masa molar
+                          densidad
+                          porcentaje molar
+                          }
+* Thermodynamic variables 
+(Peng-Robingson y Soave-Redlich-Kwong - In order to include RKPR) {
+                                                                   temperatura crítica
+                                                                   presión crítica
+                                                                   factor acéntrico
+                                                                   }
