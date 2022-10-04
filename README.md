@@ -15,13 +15,13 @@ Es articulado de manera tal que modelos no previstos en el desarrollo del paquet
 # Available properties
 ------------------------------------------------------
 * Distributed component {
-                          masa molar
-                          densidad
-                          porcentaje molar
+                          masa molar,
+                          densidad,
+                          porcentaje molar,
                           }
 * Thermodynamic variables 
 (Peng-Robingson y Soave-Redlich-Kwong - In order to include RKPR) {
-                                                                   temperatura crítica
-                                                                   presión crítica
-                                                                   factor acéntrico
+                                                                   temperatura crítica,
+                                                                   presión crítica,
+                                                                   factor acéntrico,
                                                                    }
