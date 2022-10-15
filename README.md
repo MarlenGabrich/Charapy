@@ -12,14 +12,14 @@ CharaPy (Characterization-Python) pretende ser un paquete de Python enfocado en 
 
 Es articulado de manera tal que modelos no previstos en el desarrollo del paquete puedan ser añadidos con facilidad. Así como nuevos desarrollos de correlaciones que permitan caracterizar con diferentes Ecuaciones de Estado (EoS) y criterios varios para la ejecución del lumping. 
 
-# Available properties
+# Propiedades disponibles
 ------------------------------------------------------
-* Distributed component {
+* Componentes distribuidos {
                           masa molar,
                           densidad,
                           porcentaje molar,
                           }
-* Thermodynamic variables 
+* Variables termodinámicas 
 (Peng-Robingson y Soave-Redlich-Kwong - In order to include RKPR) {
                                                                    temperatura crítica,
                                                                    presión crítica,
