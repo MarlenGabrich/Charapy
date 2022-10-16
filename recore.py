@@ -1,6 +1,6 @@
-#!usr/bin/env python3
 import numpy as np
-from math import sqrt, log10
+import pandas as pd 
+from math import sqrt
 from scipy.optimize import curve_fit
 
 class Foos():
@@ -38,7 +38,7 @@ class Foos():
         ----------
         z: set
           Molar fraction of component
-        *kwargs: float
+        A, B: float
             A, B fit parameters
 
         Returns 
@@ -48,6 +48,7 @@ class Foos():
     
         """
         foo_fit = Foo_fit()
+
         if A is None and B is None:
             A, B = Foos().intro_fit(foo_fit.fit_AB, 'z', 'cn')
 
@@ -66,24 +67,25 @@ class Distribution_pedersen(Foos):
 
         Parameters
         ----------
-        cn: float
+        cn: set
             Carbon number function
         L, D: float
             fit parameters
 
         Returns 
         -------
-        density: float 
+        density: set
             Density of a given carbon number fraction
 
         """
+        
         foo_fit = Foo_fit()
         if L is None and M is None:
             L, M = Foos().intro_fit(foo_fit.fit_LM, 'cn', 'dens')
 
         return L + M * np.log(cn)
 
-    def p_molar_fraction(self, cn:set or float, A=None, B=None):
+    def p_molar_fraction(self, cn, A=None, B=None):
         """Molar fraction function
         
         Estimates the molar fraction based on carbon number
@@ -107,9 +109,9 @@ class Distribution_pedersen(Foos):
         if A is None and B is None:
             A, B = self.A, self.B
 
-        return np.exp(A + B * cn)
+        return np.exp((cn-A)/B)
 
-    def p_molecular_weight(self, cn:set or float):
+    def p_molecular_weight(self, cn):
         """ Molecular weight function
 
         Estimates the molecular weight based on a 
@@ -142,8 +144,8 @@ class Distribution_cismondi(Foos):
         
         Parameters
         ----------
-        cn: float
-          Carbon number function
+        cn: float or set
+          Carbon number 
         Ac, Bc: float
           fit parameters
 
@@ -154,12 +156,16 @@ class Distribution_cismondi(Foos):
         """
         foo_fit = Foo_fit()
 
-        if Ac is None and Bc is None:
-            Ac, Bc = Foos().intro_fit(foo_fit.fit_AcBc, 'z', 'cn')
+        if Ac is None:
+            Ac = Foos().intro_fit(
+                foo_fit.fit_AcBc,'cn','z')[0]
+        if Bc is None:
+            Bc = Foos().intro_fit(
+                foo_fit.fit_AcBc,'cn','z')[1]
         
-        return np.exp((Ac*cn) + Bc)
+        return np.exp(Ac*cn + Bc)
 
-    def c_molecular_weight(self, cn:set or float, C=None):
+    def c_molecular_weight(self, cn, C=None):
 
         """ Molecular weight function
 
@@ -168,7 +174,7 @@ class Distribution_cismondi(Foos):
 
         Parameters
         ----------
-        cn: float
+        cn: float or set
             Carbon number function
         C: float
             fit parameter (third parameter of cismondi et al.)
@@ -185,14 +191,14 @@ class Distribution_cismondi(Foos):
 
         return 84 + C * (cn - 6)
 
-    def c_density(self, cn:set, Ad=None):
+    def c_density(self, cn, Ad=None):
         """ Density function
         Estimates the densities from C6 onwards 
         based on [...]
       
         Parameters 
         ----------
-        cn: float
+        cn: float or set
             Carbon number function
         Ad: float
             fit parameters of cismondi's propose
@@ -211,7 +217,7 @@ class Distribution_cismondi(Foos):
 
         Bd = 0.685 - Ad * np.exp(-0.6)
 
-        return Ad * (np.exp(-cn / 10)) + Bd
+        return Ad*(np.exp(-cn/10))+Bd
 
 
 class Foo_fit(Distribution_pedersen, Distribution_cismondi):
@@ -236,7 +242,9 @@ class Foo_fit(Distribution_pedersen, Distribution_cismondi):
         """
         
         foos = Foos()
-        self.A, self.B = curve_fit(foos.carbon_number_foo, z, cn)[0]
+        self.A, self.B = curve_fit(
+            foos.carbon_number_foo, z, cn
+            , check_finite=bool)[0]
 
         return self.A, self.B
 
@@ -255,36 +263,42 @@ class Foo_fit(Distribution_pedersen, Distribution_cismondi):
         L,M: float
             fit parameters
         """
+
         distribution_pedersen = Distribution_pedersen()
-        self.L, self.M = curve_fit(distribution_pedersen.p_density, cn, density)[0]
+        self.L, self.M = curve_fit(
+            distribution_pedersen.p_density, cn
+            , density, check_finite=bool)[0]
 
         return self.L, self.M
 
-    def fit_C(self, cn:set, mw:set):
+    def fit_C(self, cn, mw):
         """ Parameter setting function
         Parameters
         ----------
-        x: float
+        cn: set 
             carbon number 
-        mw: float
+        mw: set
             molecular_weight
         Returns
         -------
         C: float
             Third parameter of Cismondi's model
         """
+
         distribution_cismondi = Distribution_cismondi()
-        self.C = curve_fit(distribution_cismondi.c_molecular_weight, cn, mw)[0]
+        self.C = curve_fit(
+            distribution_cismondi.c_molecular_weight, cn
+            , mw, check_finite=bool)[0]
 
         return self.C
 
-    def fit_Ad(self, cn:set, d:set):
+    def fit_Ad(self, cn, d):
         """ Parameter setting function
         Parameters
         ----------
-        x: float
+        x: set
             carbon number 
-        d: float
+        d: set
             density for Ad
         Returns
         -------
@@ -292,7 +306,10 @@ class Foo_fit(Distribution_pedersen, Distribution_cismondi):
             Third parameter of Cismondi's model
         """
         distribution_cismondi = Distribution_cismondi()
-        self.Ad = curve_fit(distribution_cismondi.c_density, cn, d)[0]
+        self.Ad = curve_fit(
+            distribution_cismondi.c_density, cn
+            , d, check_finite=bool)[0]
+
         return self.Ad
 
     def fit_AcBc(self, cn, mf):
@@ -310,25 +327,41 @@ class Foo_fit(Distribution_pedersen, Distribution_cismondi):
             fit parameter
         """
         distribution_cismondi = Distribution_cismondi()
-        self.Ac, self.Bc = curve_fit(distribution_cismondi.c_molar_fraction, mf, cn)[0]
+        self.Ac, self.Bc = curve_fit(
+            distribution_cismondi.c_molar_fraction, cn
+            , mf, check_finite=bool)[0]
 
         return self.Ac, self.Bc
 
 
 class Correlations:
     dic_coeff = {
-        "PR": {'c1': 73.4043, 'c2': 97.352, 'c3': 0.618744, 'c4': -2059.32,
-               'd1': 0.0728462, 'd2': 2.18811, 'd3': 163.91, 'd4': -4043.23, 'd5': 25,
-               'e1': 0.373765, 'e2': 0.00549269, 'e3': 0.00117934, 'e4': -0.00000493049},
+        "PR": {'c1': 73.4043, 'c2': 97.352, 
+                'c3': 0.618744, 'c4': -2059.32,
+               'd1': 0.0728462, 'd2': 2.18811, 
+               'd3': 163.91, 'd4': -4043.23, 'd5': 25,
+               'e1': 0.373765, 'e2': 0.00549269, 
+               'e3': 0.0117934, 'e4': -0.00000493049},
 
         "SRK": {
-            'c1': 163.12, 'c2': 86.052, 'c3': 0.43375, 'c4': -1877.4,
-            'd1': -0.13408, 'd2': 2.5019, 'd3': 208.46, 'd4': -3987.2, 'd5': 2.0,
-            'e1': 0.74310, 'e2': 0.0048122, 'e3': 0.0096707, 'e4': -0.0000037184}
+            'c1': 163.12, 'c2': 86.052, 
+            'c3': 0.43375, 'c4': -1877.4,
+            'd1': -0.13408, 'd2': 2.5019, 'd3': 208.46, 
+            'd4': -3987.2, 'd5': 2.0,
+            'e1': 0.74310, 'e2': 0.0048122, 
+            'e3': 0.0096707, 'e4': -0.0000037184}
+    }
+
+    dic_quadratic = {
+        "SRK": {
+            'Ce': 0.480, 'Be': 1.574, 'Ae': -0.176},
+        "PR": {
+            'Ce': 0.37464, 'Be':1.54226, 'Ae': -0.26992}
     }
 
     def __init__(self, EoS):
         self.dic_coeff = self.dic_coeff[EoS]
+        self.dic_quadratic = self.dic_quadratic[EoS]
 
     def critical_temperature(self, molecular_weight, density,
                              c1=None, c2=None, c3=None, c4=None):
@@ -348,19 +381,19 @@ class Correlations:
         critical_temperature: float
             Critical temperature
         """
-        if c1 is None and c2 is None and c3 is None and c4 is None:
-            c1 = self.dic_coeff['c1']
-            c2 = self.dic_coeff['c2']
-            c3 = self.dic_coeff['c3']
-            c4 = self.dic_coeff['c4']
+        if c1 is None: c1 = self.dic_coeff['c1']
+        if c2 is None: c2 = self.dic_coeff['c2']
+        if c3 is None: c3 = self.dic_coeff['c3']
+        if c4 is None: c4 = self.dic_coeff['c4']
 
         return (
                 c1 * density + c2 * (np.log(molecular_weight))
-                + c3 * molecular_weight * (c4 / molecular_weight)
+                + c3 * molecular_weight + (c4 / molecular_weight)
         )
 
     def critical_pression(self, molecular_weight, density,
-                          d1=None, d2=None, d3=None, d4=None, d5=None):
+                          d1=None, d2=None, d3=None
+                          , d4=None, d5=None):
         """Critical pression correlation
         
         Parameters
@@ -375,78 +408,19 @@ class Correlations:
         critical_pression: float
             Critical pression
         """
-        if d1 is None and d2 is None and d3 is None and d4 is None:
-            d1 = self.dic_coeff['d1']
-            d2 = self.dic_coeff['d2']
-            d3 = self.dic_coeff['d3']
-            d4 = self.dic_coeff['d4']
-            d5 = self.dic_coeff['d5']
-
-        pression_log = d1 + d2 * (
+        if d1 is None: d1 = self.dic_coeff['d1']
+        if d2 is None: d2 = self.dic_coeff['d2']
+        if d3 is None: d3 = self.dic_coeff['d3']
+        if d4 is None: d4 = self.dic_coeff['d4']
+        if d5 is None: d5 = self.dic_coeff['d5']
+        
+        pression_log = d1 + d2*(
                 density**d5) + (
-                    d3/molecular_weight) + (
-                        d4/(molecular_weight**2))
+                d3/molecular_weight) + (
+                d4/(molecular_weight**2)
+                )
 
         return np.exp(pression_log)
-
-    def m_factor_foo(self, molecular_weight:set, density:set,
-                 e1=None, e2=None, e3=None, e4=None):
-
-        """ *m* factor (links to acentric factor as appropiate)
-        
-        Parameters
-        ----------
-        molecular_weight: set
-            Molecular weight function
-
-        density: set
-            Density data set
-
-        e1,e2,e3,e4: float
-            fit parameters
-
-        Return
-        ------
-        m_factor: float
-            m factor to calculate the acentric factor
-        """
-        if e1 is None and e2 is None and e3 is None and e4 is None:
-            e1 = self.dic_coeff['e1']
-            e2 = self.dic_coeff['e2']
-            e3 = self.dic_coeff['e3']
-            e4 = self.dic_coeff['e4']
-
-        m_factor = e1 + e2 * molecular_weight + e3 * density
-        + e4 * (molecular_weight * (np.exp(2)))
-
-        return m_factor
-
-    def accentric_factor(self, m_w, den, EoS, m_f=None):
-        """ Accentric factor function
-        
-        Parameters
-        ----------
-        m_factor: float
-            m factor --> links to acentric factor as appropiate
-        
-
-        Return
-        ------
-        accentric_factor: float
-            Accentric factor
-        """
-        correlations = Correlations(EoS)
-
-        if m_f is None:
-            m_f = correlations.m_factor_foo(m_w, den)
-
-        A = 0.37464 - m_f
-        B = 1.54226
-        C = -0.26992
-
-        ac_factor = (-B - sqrt(B * np.exp(2) - 4 * A * C)) / (2 * A)
-
-        return ac_factor
 
 class Proper_plus():
     def __init__(self):
@@ -473,13 +447,19 @@ class Proper_plus():
         
         molecularplus = np.array([])
         molarplus = np.array([])
-        
 
         for i in range(len(carbon_range)):
-            molecularplus= np.append(molecularplus,
-                (molarfraction_values[:i]*molecularweight_values[:i]).sum()/(
-                    molarfraction_values[:i].sum()))
-            molarplus = np.append(molarplus, molarfraction_values[:i].sum())
+            if (sum(molarfraction_values[:i]))==0:
+                molecularplus = np.append(molecularplus,np.NaN)
+                molarplus = np.append(molarplus, sum(
+                    molarfraction_values[:i]))
+            else:
+                molecularplus= np.append(molecularplus,sum(
+                    molarfraction_values[:i]*molecularweight_values[:i])/(
+                        sum(molarfraction_values[:i])))
+                
+                molarplus = np.append(molarplus, sum(
+                    molarfraction_values[:i]))
 
         return molecularplus, molarplus
 
@@ -489,7 +469,7 @@ class Residual_fraction(Proper_plus, Foo_fit):
         self.molecularweight_max = mw_max
         self.molarfraction_max = mf_max
 
-    def carbon_number_max(self, carbon_range , Ac, Bc, C):
+    def carbon_number_max(self, carbon_range , A, B, C):
         """Maximum carbon number based on Cismondi's observations
         
         Parameters
@@ -509,25 +489,21 @@ class Residual_fraction(Proper_plus, Foo_fit):
         """
 
         distribution_cismondi = Distribution_cismondi()
+        distribution_pedersen = Distribution_pedersen()
+
         proper_plus = Proper_plus()
 
         carbonnumber_max = carbon_range[0]
-        molarfraction_values = np.array([])
-        molecularweight_values = np.array([])
-
-        for item in carbon_range:
-            molarfraction_values = np.append(
-                molarfraction_values, 
-                distribution_cismondi.c_molar_fraction(item,Ac,Bc)
-                )
-            molecularweight_values = np.append(
-                molecularweight_values,
-                distribution_cismondi.c_molecular_weight(item,C)
-                )
+        molarfraction_values = np.array(
+            distribution_pedersen.p_molar_fraction(
+                carbon_range,A,B))
+        molecularweight_values = np.array(
+            distribution_cismondi.c_molecular_weight(
+                carbon_range,C))
         
         molecularplus, molarfractionplus = proper_plus.properties_plus(
-            molarfraction_values, molecularweight_values, carbon_range
-        )
+            molarfraction_values, molecularweight_values
+            , carbon_range)
 
         for i,j in zip(molecularplus, molarfractionplus):
             carbonnumber_max +=1
@@ -543,39 +519,66 @@ class Lumping():
         ...
 
     def criteriotanto(self, dato):
-        l = []
-        d = []
-        count = 0
+        ...
 
-        for i in dato:
-            count += 1
-            if count <= 3:
-                l.append(i)
-            else: 
-                d.append(l)
-                count = 0
-    def rangy(self,dato, coluset):
+    def lumy(self,limits, datos, colum_name):
+        """Function to inset ID index to lumpy func.
+
+        Parameters
+        ----------
+        limits: list of tuples
+            ranges limits
+        datos: set
+            distribution data set
+        colum_name: set
+            data frame column to realize lumping
+
+        Return
+        ------
+        lumy_set: set 
+            data set with ID refers to lumping
+        """
+        count = -1
+        co = np.array([])
+
+        for i in datos[colum_name]:
+            count +=1
+            if i in range(limits[count][0],limits[count][1]+1,1): 
+                co = np.append(co,count)
+                count -= 1
+            else:
+                co = np.append(co,count+1)
+        
+        datos['ID'] = co
+
+        datos.set_index([pd.Index(co), 'ID'])
+        
+        return datos
+
+    def lumpy(self,limits, datos, colum_name):
         """ Function to det. carbon ranges for lumping
 
         Parameters
         ----------
-        dataset: set
+        limits: tupla
+            ranges limits
+        datos: set
             distribution data set
-        criterio: function
-            function to lumping
-        colu: str
-            dataframe column to criterio
+        colum_name: set
+            data frame column to realize lumping
 
         Return
         ------
-        Lumy: ranges list
-            ranges list to group
+        lumping_set: set
+            lumping data set (groupy)
 
         """
         lumping = Lumping()
-        lumy = lumping.criteriotanto(dato)
-
-        for li in lumy:
-            dataset = dataset[li].groupby(coluset, as_index=False).mean()
+        df = lumping.lumy(limits, datos, colum_name)
         
-        return dataset 
+        data_lumping = df.groupby(
+            by=["ID"], dropna=False).mean()
+
+        data_lumping[colum_name] = limits
+
+        return data_lumping 
