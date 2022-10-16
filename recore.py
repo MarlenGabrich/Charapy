@@ -425,13 +425,11 @@ class Correlations:
 class Proper_plus():
     def __init__(self):
         ...
-    def properties_plus(self, molarfraction_values, molecularweight_values, carbon_range):
+    def properties_plus(self, molarfraction_values, molecularweight_values):
         """Function to calculate residual fraction properties
         
         Parameters
         ----------
-        i: int
-            Carbon number into range 
         molarfraction_values: float
             Molar fraction values to i
         molecularweight_values: float
@@ -444,24 +442,23 @@ class Proper_plus():
         molarplus: float
             Molar fraction to residual fraction
         """
-        
         molecularplus = np.array([])
-        molarplus = np.array([])
+        sa = np.array([])
+        mfv = np.array([])
+        
+        for i,j in zip(molecularweight_values, molarfraction_values):
+            sa = np.append(sa, i*j)
+            mfv = np.append(mfv, j)
+            molecularplus = np.append(molecularplus, (sa.sum())/mfv.sum())
 
-        for i in range(len(carbon_range)):
-            if (sum(molarfraction_values[:i]))==0:
-                molecularplus = np.append(molecularplus,np.NaN)
-                molarplus = np.append(molarplus, sum(
-                    molarfraction_values[:i]))
-            else:
-                molecularplus= np.append(molecularplus,sum(
-                    molarfraction_values[:i]*molecularweight_values[:i])/(
-                        sum(molarfraction_values[:i])))
-                
-                molarplus = np.append(molarplus, sum(
-                    molarfraction_values[:i]))
+        molarfractionplus = np.array([])
+        su = np.array([])
 
-        return molecularplus, molarplus
+        for i in molarfraction_values:
+            su = np.append(su, i)
+            molarfractionplus = np.append(molarfractionplus, su.sum())
+    
+        return molecularplus, molarfractionplus
 
 class Residual_fraction(Proper_plus, Foo_fit):
 
@@ -500,10 +497,9 @@ class Residual_fraction(Proper_plus, Foo_fit):
         molecularweight_values = np.array(
             distribution_cismondi.c_molecular_weight(
                 carbon_range,C))
-        
+
         molecularplus, molarfractionplus = proper_plus.properties_plus(
-            molarfraction_values, molecularweight_values
-            , carbon_range)
+            molarfraction_values, molecularweight_values)
 
         for i,j in zip(molecularplus, molarfractionplus):
             carbonnumber_max +=1
