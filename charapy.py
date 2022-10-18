@@ -25,11 +25,19 @@ class Foos():
     def __init__(self):
         ...
 
-    def intro_fit(self, foo, x, y):
+    def intro_fit(self, x: str,
+                  y: str):
+        """Call function
+        Parameters
+        ----------
+        x, y: string
+            default property of the fluid required to adjust parameters
+            It can be: cn, z, dens, mw
+        """
         set_x = self.com[x]
         set_y = self.com[y]
 
-        x, y = foo(list(set_x), list(set_y))
+        x, y = list(set_x), list(set_y)
         return x, y
 
     def carbon_number_foo(self, z, A=None, B=None):
@@ -54,9 +62,15 @@ class Foos():
 
         """
         foo_fit = Foo_fit()
+        foos = Foos()
 
-        if A is None and B is None:
-            A, B = Foos().intro_fit(foo_fit.fit_AB, 'z', 'cn')
+        if A is None:
+            cn_adj, z_adj = foos.intro_fit('cn', 'z')
+            A = foo_fit.fit_AB(cn_adj, z_adj)[0]
+
+        if B is None:
+            cn_adj, z_adj = foos.intro_fit('cn', 'z')
+            B = foo_fit.fit_AB(cn_adj, z_adj)[1]
 
         return A + (B*np.log(z))
 
@@ -594,3 +608,24 @@ class Lumping():
         data_lumping[colum_name] = limits
 
         return data_lumping
+
+
+def test_introfit_001():
+    x = [7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17,
+         18, 19, 20, 21, 22, 23, 24, 25, 26, 27,
+         28, 29]
+
+    assert set(Foos().intro_fit('cn', 'z')[0]) == set(x)
+
+
+def test_introfit_002():
+    y = [2.87, 4.08, 3.51, 3.26, 2.51, 2.24, 2.18, 2.07,
+         2.03, 1.67, 1.38, 1.36, 1.19, 1.02, 0.89, 0.78,
+         0.72, 0.64, 0.56, 0.53, 0.48, 0.46, 0.45]
+
+    assert set(Foos().intro_fit('cn', 'z')[1]) == set(y)
+
+
+def test_cn():
+    z = np.array([2.87])
+    assert Foos().carbon_number_foo(z) == 7
