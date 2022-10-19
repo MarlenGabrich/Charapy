@@ -72,7 +72,9 @@ class Foos():
             cn_adj, z_adj = foos.intro_fit('cn', 'z')
             B = foo_fit.fit_AB(cn_adj, z_adj)[1]
 
-        return A + (B*np.log(z))
+        carbon_number = B*np.log10(z) + A
+
+        return carbon_number.astype(int)
 
 
 class Distribution_pedersen(Foos):
@@ -100,10 +102,19 @@ class Distribution_pedersen(Foos):
         """
 
         foo_fit = Foo_fit()
-        if L is None and M is None:
-            L, M = Foos().intro_fit(foo_fit.fit_LM, 'cn', 'dens')
+        foos = Foos()
 
-        return L + M * np.log(cn)
+        if L is None:
+            cn_adj, dens_adj = foos.intro_fit('cn', 'dens')
+            L = foo_fit.fit_LM(cn_adj, dens_adj)[0]
+
+        if M is None:
+            cn_adj, dens_adj = foos.intro_fit('cn', 'dens')
+            M = foo_fit.fit_LM(cn_adj, dens_adj)[1]
+
+        density = M*np.log10(cn) + L
+
+        return density.astype(float)
 
     def p_molar_fraction(self, cn, A=None, B=None):
         """Molar fraction function
@@ -125,9 +136,16 @@ class Distribution_pedersen(Foos):
         molar_fraction: float
             Molar fraction of a given carbon number fraction
         """
+        foo_fit = Foo_fit()
+        foos = Foos()
 
-        if A is None and B is None:
-            A, B = self.A, self.B
+        if A is None:
+            cn_adj, z_adj = foos.intro_fit('cn', 'z')
+            A = foo_fit.fit_AB(cn_adj, z_adj)[0]
+
+        if B is None:
+            cn_adj, z_adj = foos.intro_fit('cn', 'z')
+            B = foo_fit.fit_AB(cn_adj, z_adj)[1]
 
         return np.exp((cn-A)/B)
 
@@ -177,11 +195,12 @@ class Distribution_cismondi(Foos):
         foo_fit = Foo_fit()
 
         if Ac is None:
-            Ac = Foos().intro_fit(foo_fit.fit_AcBc,
-                                  'cn', 'z')[0]
+            cn_adj, z_adj = Foos().intro_fit('cn', 'z')
+            Ac = foo_fit.fit_AcBc(cn_adj, z_adj)[0]
+
         if Bc is None:
-            Bc = Foos().intro_fit(foo_fit.fit_AcBc,
-                                  'cn', 'z')[1]
+            cn_adj, z_adj = Foos().intro_fit('cn', 'z')
+            Bc = foo_fit.fit_AcBc(cn_adj, z_adj)[1]
 
         return np.exp(Ac*cn + Bc)
 
@@ -205,11 +224,13 @@ class Distribution_cismondi(Foos):
             Molecular weight of a given carbon number fraction
         """
         foo_fit = Foo_fit()
+        foos = Foos()
 
         if C is None:
-            C = Foos().intro_fit(foo_fit.fit_C, 'cn', 'mw')
+            cn_adj, mw_adj = foos.intro_fit('cn', 'mw')
+            C = foo_fit.fit_C(cn_adj, mw_adj)
 
-        return 84 + C * (cn - 6)
+        return 84 + C*(cn-6)
 
     def c_density(self, cn, Ad=None):
         """ Density function
@@ -229,6 +250,15 @@ class Distribution_cismondi(Foos):
             Density of a given carbon number fraction
         """
         foo_fit = Foo_fit()
+        foos = Foos()
+
+        if Ac is None:
+            cn_adj, z_adj = foos.intro_fit('cn', 'z')
+            Ac = foo_fit.fit_AB(cn_adj, z_adj)[0]
+
+        if B is None:
+            cn_adj, z_adj = foos.intro_fit('cn', 'z')
+            B = foo_fit.fit_AcBc(cn_adj, z_adj)[1]
 
         if Ad is None:
             car = self.com['cn']
@@ -261,10 +291,7 @@ class Foo_fit(Distribution_pedersen, Distribution_cismondi):
             fit parameters
         """
 
-        foos = Foos()
-        self.A, self.B = curve_fit(foos.carbon_number_foo,
-                                   z, cn,
-                                   check_finite=bool)[0]
+        self.A, self.B = np.polyfit(z, cn,1)
 
         return self.A, self.B
 
@@ -284,9 +311,7 @@ class Foo_fit(Distribution_pedersen, Distribution_cismondi):
             fit parameters
         """
 
-        distribution_pedersen = Distribution_pedersen()
-        self.L, self.M = curve_fit(distribution_pedersen.p_density,
-                                   cn, density, check_finite=bool)[0]
+        self.L, self.M = np.polyfit(cn, density, 1)
 
         return self.L, self.M
 
@@ -306,7 +331,7 @@ class Foo_fit(Distribution_pedersen, Distribution_cismondi):
 
         distribution_cismondi = Distribution_cismondi()
         self.C = curve_fit(distribution_cismondi.c_molecular_weight,
-                           cn, mw, check_finite=bool)[0]
+                           cn, mw)[0]
 
         return self.C
 
@@ -325,7 +350,7 @@ class Foo_fit(Distribution_pedersen, Distribution_cismondi):
         """
         distribution_cismondi = Distribution_cismondi()
         self.Ad = curve_fit(distribution_cismondi.c_density,
-                            cn, d, check_finite=bool)[0]
+                            cn, d)[0]
 
         return self.Ad
 
@@ -345,7 +370,7 @@ class Foo_fit(Distribution_pedersen, Distribution_cismondi):
         """
         distribution_cismondi = Distribution_cismondi()
         self.Ac, self.Bc = curve_fit(distribution_cismondi.c_molar_fraction,
-                                     cn, mf, check_finite=bool)[0]
+                                     cn, mf)[0]
 
         return self.Ac, self.Bc
 
@@ -617,7 +642,6 @@ def test_introfit_001():
 
     assert set(Foos().intro_fit('cn', 'z')[0]) == set(x)
 
-
 def test_introfit_002():
     y = [2.87, 4.08, 3.51, 3.26, 2.51, 2.24, 2.18, 2.07,
          2.03, 1.67, 1.38, 1.36, 1.19, 1.02, 0.89, 0.78,
@@ -625,7 +649,23 @@ def test_introfit_002():
 
     assert set(Foos().intro_fit('cn', 'z')[1]) == set(y)
 
-
 def test_cn():
-    z = np.array([2.87])
-    assert Foos().carbon_number_foo(z) == 7
+    assert Foos().carbon_number_foo(2.87) == 7
+
+def test_density_pedersen():
+    assert 0.6 <= Distribution_pedersen().p_density(7) <= 0.876
+
+def test_density_cismondi():
+    assert 0.6 <= Distribution_cismondi().c_density(7) <= 0.876
+
+def test_molarfraction_pedersen():
+    assert 0.95 <= Distribution_pedersen().p_molar_fraction(7) <= 4.79
+
+def test_molarfraction_cismondi():
+    assert 0.96 <= Distribution_cismondi().c_molar_fraction(7) <= 4.79
+
+def test_molecular_weight_pedersen():
+    assert 94 <= Distribution_pedersen().p_molecular_weight(7) <= 98
+
+def test_molecular_weight_cismondi(): 
+    assert 94 <= Distribution_cismondi().c_molecular_weight(7) <= 98
