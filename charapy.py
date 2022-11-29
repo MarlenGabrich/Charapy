@@ -10,7 +10,7 @@ class Distribution_pedersen():
     def __init__(self):
         ...
 
-    def carbon_number_foo(self, z, A, B):
+    def carbon_number(self, z, A, B):
         """Función general para estimar el número de carbono
 
         Parameters
@@ -27,9 +27,9 @@ class Distribution_pedersen():
 
         """
 
-        carbon_number = B*np.log10(z) + A
+        carbon_number = A*np.log(z) + B
 
-        return carbon_number.astype(int)
+        return carbon_number
 
     def p_density(self, cn, L, M):
         """ Función para calcular la densidad
@@ -47,9 +47,9 @@ class Distribution_pedersen():
             Densidad del número de carbono dado
         """
 
-        density = L*np.log10(cn) + M
+        density = L*np.log(cn) + M
 
-        return density.astype(float)
+        return density
 
     def p_molar_fraction(self, cn, A, B):
         """Función para calcular la fracción molar
@@ -67,7 +67,7 @@ class Distribution_pedersen():
             fracción molar para cada componente
         """
 
-        return np.exp((cn-A)/B)
+        return np.exp((cn - B)/A)
 
     def p_molecular_weight(self, cn):
         """ Función para calcular el peso molecular 
@@ -85,7 +85,7 @@ class Distribution_pedersen():
 
         """
 
-        return cn * 14 - 4
+        return cn*14-4
 
 class Distribution_cismondi():
     def __init__(self):
@@ -107,7 +107,7 @@ class Distribution_cismondi():
           fracción molar
         """
 
-        return np.exp(Ac*cn + Bc)
+        return np.exp(Ac*cn-Bc)
 
     def c_molecular_weight(self, cn, C):
         """ Función para calcular el peso molecular
@@ -124,7 +124,7 @@ class Distribution_cismondi():
         molecular_weight: set or float
             peso molecular
         """
-        
+
         return 84 + C*(cn-6)
 
     def c_density(self, cn, Ad):
@@ -143,9 +143,7 @@ class Distribution_cismondi():
             densidad
         """
 
-        Bd = 0.685 - Ad * np.exp(-0.6)
-
-        return Ad*(np.exp(-cn/10))+Bd
+        return Ad*(np.exp(-cn/10)-np.exp(-0.6))+0.685
 
 
 class Foo_fit(Distribution_pedersen, Distribution_cismondi):
@@ -168,10 +166,9 @@ class Foo_fit(Distribution_pedersen, Distribution_cismondi):
         A,B: float
             fit parameters
         """
-        x_data = np.log10(z_fit)
-        y_data = cn_fit
 
-        A,B = np.polyfit(x_data, y_data,1)
+        d_ped = Distribution_pedersen()
+        A,B = curve_fit(d_ped.carbon_number,z_fit,cn_fit)
 
         return A,B
 
@@ -190,11 +187,11 @@ class Foo_fit(Distribution_pedersen, Distribution_cismondi):
         L,M: float
             fit parameters
         """
-        x_data = np.log10(cn_fit)
-        y_data = density_fit
-        L, M = np.polyfit(x_data, y_data, 1)
+        
+        d_ped = Distribution_pedersen()
+        L,M = curve_fit(d_ped.p_density,cn_fit,density_fit)
 
-        return L, M
+        return M, L
 
     def fit_C(self, cn, mw):
         """ Función de ajuste C
@@ -211,12 +208,9 @@ class Foo_fit(Distribution_pedersen, Distribution_cismondi):
             Third parameter of Cismondi's model
         """
 
-        x_data = cn
-        y_data = mw
-
         distribution_cismondi = Distribution_cismondi()
         C = curve_fit(distribution_cismondi.c_molecular_weight,
-                           x_data, y_data)[0]
+                           cn,mw)[0]
 
         return C
 
@@ -239,7 +233,7 @@ class Foo_fit(Distribution_pedersen, Distribution_cismondi):
 
         distribution_cismondi = Distribution_cismondi()
         Ad = curve_fit(distribution_cismondi.c_density,
-                            x_data, y_data)[0]
+                            x_data, y_data)
 
         return Ad
 
@@ -258,12 +252,9 @@ class Foo_fit(Distribution_pedersen, Distribution_cismondi):
         self.Ac, self.Bc: float
             fit parameter
         """
-        x_data = cn
-        y_data = mf
 
-        distribution_cismondi = Distribution_cismondi()
-        Ac, Bc = curve_fit(distribution_cismondi.c_molar_fraction,
-                                     x_data, y_data)[0]
+        d_cis = Distribution_cismondi()
+        Ac, Bc = curve_fit(d_cis.c_molar_fraction,mf,cn)
 
         return Ac, Bc
 
@@ -431,13 +422,14 @@ class Residual_fraction(Proper_plus, Foo_fit):
 
         distribution_cismondi = Distribution_cismondi()
         distribution_pedersen = Distribution_pedersen()
-
         proper_plus = Proper_plus()
 
         carbonnumber_max = carbon_range[0]
+
         molarfraction_values = np.array(
             distribution_pedersen.p_molar_fraction(
                 carbon_range, A, B))
+                
         molecularweight_values = np.array(
             distribution_cismondi.c_molecular_weight(
                 carbon_range, C))
@@ -455,9 +447,6 @@ class Residual_fraction(Proper_plus, Foo_fit):
 
 class Lumping():
     def __init__(self):
-        ...
-
-    def criteriotanto(self, dato):
         ...
 
     def lumy(self, limits, datos, colum_name):
