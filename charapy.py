@@ -163,7 +163,7 @@ class Foo_fit(Distribution_pedersen, Distribution_cismondi):
 
         Return
         ------
-        A,B: float
+        AB: float
             fit parameters
         """
 
@@ -184,7 +184,7 @@ class Foo_fit(Distribution_pedersen, Distribution_cismondi):
 
         Return
         ------
-        L,M: float
+        LM: float
             fit parameters
         """
         
@@ -228,12 +228,11 @@ class Foo_fit(Distribution_pedersen, Distribution_cismondi):
         C: float
             Third parameter of Cismondi's model
         """
-        x_data = cn
-        y_data = d
 
         distribution_cismondi = Distribution_cismondi()
+
         Ad = curve_fit(distribution_cismondi.c_density,
-                            x_data, y_data)
+                       cn, d)
 
         return Ad
 
@@ -254,7 +253,8 @@ class Foo_fit(Distribution_pedersen, Distribution_cismondi):
         """
 
         d_cis = Distribution_cismondi()
-        Ac, Bc = curve_fit(d_cis.c_molar_fraction,mf,cn)
+
+        Ac, Bc = curve_fit(d_cis.c_molar_fraction,cn, mf)
 
         return Ac, Bc
 
@@ -311,10 +311,8 @@ class Correlations:
         if c4 is None:
             c4 = self.dic_coeff['c4']
 
-        return (
-                c1 * density + c2 * (np.log(molecular_weight))
-                + c3 * molecular_weight + (c4 / molecular_weight)
-                )
+        return (c1*density+c2*(np.log(molecular_weight))
+                +c3*molecular_weight+(c4/molecular_weight))
 
     def critical_pression(self, molecular_weight, density,
                           d1=None, d2=None, d3=None,
@@ -344,11 +342,9 @@ class Correlations:
         if d5 is None:
             d5 = self.dic_coeff['d5']
 
-        pression_log = d1 + d2*(
-                density**d5) + (
-                d3/molecular_weight) + (
-                d4/(molecular_weight**2)
-                )
+        pression_log = d1+d2*(density**d5)+(
+                       d3/molecular_weight)+(
+                       d4/(molecular_weight**2))
 
         return np.exp(pression_log)
 
@@ -356,7 +352,8 @@ class Proper_plus():
     def __init__(self):
         ...
 
-    def properties_plus(self, molarfraction_values, molecularweight_values):
+    def properties_plus(self, molarfraction_values,
+                        molecularweight_values):
         """Function to calculate residual fraction properties
 
         Parameters
@@ -373,6 +370,7 @@ class Proper_plus():
         molarplus: float
             Molar fraction to residual fraction
         """
+
         molecularplus = np.array([])
         sa = np.array([])
         mfv = np.array([])
@@ -419,21 +417,21 @@ class Residual_fraction(Proper_plus, Foo_fit):
             Maximun carbon number
         """
 
-        distribution_cismondi = Distribution_cismondi()
-        distribution_pedersen = Distribution_pedersen()
+        dcis = Distribution_cismondi()
+        dped = Distribution_pedersen()
         proper_plus = Proper_plus()
 
         carbonnumber_max = carbon_range[0]
 
         molarfraction_values = np.array(
-            distribution_pedersen.p_molar_fraction(
-                carbon_range, A, B))
+            dped.p_molar_fraction(
+            carbon_range, A, B))
                 
         molecularweight_values = np.array(
-            distribution_cismondi.c_molecular_weight(
-                carbon_range, C))
+            dcis.c_molecular_weight(
+            carbon_range, C))
 
-        molecularplus, molarfractionplus = proper_plus.properties_plus(
+        molecularplus,molarfractionplus = proper_plus.properties_plus(
             molarfraction_values, molecularweight_values)
 
         for i, j in zip(molecularplus, molarfractionplus):
