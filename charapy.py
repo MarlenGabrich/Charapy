@@ -168,9 +168,9 @@ class Foo_fit(Distribution_pedersen, Distribution_cismondi):
         """
 
         d_ped = Distribution_pedersen()
-        A,B = curve_fit(d_ped.carbon_number,z_fit,cn_fit)
+        AB = curve_fit(d_ped.carbon_number,z_fit,cn_fit)
 
-        return A,B
+        return AB
 
     def fit_LM(self, cn_fit, density_fit):
         """ Función de ajuste L, M
@@ -189,9 +189,9 @@ class Foo_fit(Distribution_pedersen, Distribution_cismondi):
         """
         
         d_ped = Distribution_pedersen()
-        L,M = curve_fit(d_ped.p_density,cn_fit,density_fit)
+        LM = curve_fit(d_ped.p_density,cn_fit,density_fit)
 
-        return M, L
+        return LM
 
     def fit_C(self, cn, mw):
         """ Función de ajuste C
@@ -257,7 +257,6 @@ class Foo_fit(Distribution_pedersen, Distribution_cismondi):
         Ac, Bc = curve_fit(d_cis.c_molar_fraction,mf,cn)
 
         return Ac, Bc
-
 
 class Correlations:
     dic_coeff = {
@@ -446,6 +445,7 @@ class Residual_fraction(Proper_plus, Foo_fit):
         return carbonnumber_max
 
 class Lumping():
+
     def __init__(self):
         ...
 
@@ -512,42 +512,3 @@ class Lumping():
         data_lumping[colum_name] = limits
 
         return data_lumping
-
-
-def test_introfit_001():
-    x = [7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17,
-         18, 19, 20, 21, 22, 23, 24, 25, 26, 27,
-         28, 29]
-    y = [2.87, 4.08, 3.51, 3.26, 2.51, 2.24, 2.18, 2.07,
-         2.03, 1.67, 1.38, 1.36, 1.19, 1.02, 0.89, 0.78,
-         0.72, 0.64, 0.56, 0.53, 0.48, 0.46, 0.45]
-
-    assert 4
-
-def test_introfit_002():
-    y = [2.87, 4.08, 3.51, 3.26, 2.51, 2.24, 2.18, 2.07,
-         2.03, 1.67, 1.38, 1.36, 1.19, 1.02, 0.89, 0.78,
-         0.72, 0.64, 0.56, 0.53, 0.48, 0.46, 0.45]
-
-    assert 4#set(Foos().intro_fit('cn', 'z')[1]) == set(y)
-
-def test_cn():
-    assert 4#Foos().carbon_number_foo(2.87) == 7
-
-def test_density_pedersen():
-    assert 0.6 <= Distribution_pedersen().p_density(7) <= 0.876
-
-def test_density_cismondi():
-    assert 0.6 <= Distribution_cismondi().c_density(7) <= 0.876
-
-def test_molarfraction_pedersen():
-    assert 0.95 <= Distribution_pedersen().p_molar_fraction(7) <= 4.79
-
-def test_molarfraction_cismondi():
-    assert 0.96 <= Distribution_cismondi().c_molar_fraction(7) <= 4.79
-
-def test_molecular_weight_pedersen():
-    assert 94 <= Distribution_pedersen().p_molecular_weight(7) <= 98
-
-def test_molecular_weight_cismondi(): 
-    assert 94 <= Distribution_cismondi().c_molecular_weight(7) <= 98
