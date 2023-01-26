@@ -61,7 +61,7 @@ class Distribution_cismondi():
 
         return AD*(np.exp(-cn/10)-np.exp(-0.6))+0.685
 
-    def fit_ACBC(self,cn,z):
+    def fit_ACBC(self,z,cn):
         '''Fit function to calculated AC, BC parameters
 
         Parameters
@@ -78,9 +78,9 @@ class Distribution_cismondi():
         '''
 
         dc = Distribution_cismondi()
-        Ac,Bc = curve_fit(dc.molar_fraction(cn,z))
-        AC = Ac[0][0]
-        BC = Bc[0][1]
+        AB = curve_fit(dc.molar_fraction,cn,z)
+        AC = AB[0][0]
+        BC = AB[0][1]
 
         return AC,BC
 
@@ -102,7 +102,7 @@ class Distribution_cismondi():
         '''
 
         dc = Distribution_cismondi()
-        C = curve_fit(dc.molecular_weight(cn,mw))[0][0]
+        C = curve_fit(dc.molecular_weight,cn,mw)[0][0]
         return C
 
     def fit_AD(self,cn,rho):
@@ -122,6 +122,6 @@ class Distribution_cismondi():
         '''
 
         dc = Distribution_cismondi()
-        AD = curve_fit(dc.density(cn,rho))[0][0]
+        AD = curve_fit(dc.density,cn,rho)[0][0]
 
         return AD

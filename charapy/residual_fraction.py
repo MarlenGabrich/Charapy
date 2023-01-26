@@ -28,18 +28,17 @@ class Proper_plus():
         mwplus = np.array([])
         sa = np.array([])
         mfv = np.array([])
+        zplus = np.array([])
+        su = np.array([])
 
         for i, j in zip(mw_values, z_values):
             sa = np.append(sa, i*j)
             mfv = np.append(mfv, j)
-            mwplus = np.append(mwplus,su.sum())
-
-        zplus = np.array([])
-        su = np.array([])
+            mwplus = np.append(mwplus,sa.sum()/mfv.sum())
 
         for i in z_values:
             su = np.append(su, i)
-            zplus = np.append(mwplus,su.sum())
+            zplus = np.append(zplus,su.sum())
 
         return mwplus, zplus
 
@@ -49,7 +48,7 @@ class Residual_fraction(Proper_plus):
         self.mw_max = mw_max
         self.z_max = z_max
 
-    def cn_max(self, cn_range, A, B, C):
+    def cn_max(self, cn_range, A, B,fun,*args):
         '''Function to calculated max carbon number
         based on Cismondi's observations
 
@@ -70,12 +69,20 @@ class Residual_fraction(Proper_plus):
         dped = pedersen.Distribution_pedersen()
 
         cn_max = cn_range[0]
+        C = args
 
-        z_values = np.array(dped.molar_fraction(
+        if fun == 'cis':
+            mw_values = np.array(dcis.molecular_weight(
+                             cn_range,C))
+            z_values = np.array(dcis.molar_fraction(
                             cn_range,A,B))
 
-        mw_values = np.array(dcis.molecular_weight(
-                             cn_range,C))
+        elif fun == 'ped':
+            mw_values = np.array(dped.molecular_weight(cn_range))
+            z_values = np.array(dped.molar_fraction(
+                            cn_range,A,B))
+
+        else: raise SyntaxError('fun puede ser: ped o cis')
 
         pplus = Proper_plus()
         mwplus, zplus = pplus.prop_plus(z_values,mw_values)
@@ -83,7 +90,7 @@ class Residual_fraction(Proper_plus):
         for i, j in zip(mwplus, zplus):
             cn_max += 1
 
-            if i > self.mw_max or j > self.z_max:
+            if round(i,5) >= self.mw_max or round(j,5) >= self.z_max:
                 break
 
         return cn_max

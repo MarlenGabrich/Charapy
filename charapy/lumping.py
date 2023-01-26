@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 
 class Lumping():
     def __init__(self):
